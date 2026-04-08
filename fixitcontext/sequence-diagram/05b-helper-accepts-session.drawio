@@ -1,0 +1,274 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0" version="29.5.2">
+  <diagram name="SD05b: Helper Receives and Responds to Session Request" id="2">
+    <mxGraphModel dx="2160" dy="1557" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1700" pageHeight="1220" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="3" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fontStyle=0;fontSize=12;" value="Helper" vertex="1">
+          <mxGeometry height="50" width="30" x="45" y="10" as="geometry" />
+        </mxCell>
+        <mxCell id="4" edge="1" parent="1" style="endArrow=none;dashed=1;dashPattern=4 4;strokeColor=#999999;html=1;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="60" y="70" as="sourcePoint" />
+            <mxPoint x="60" y="1140" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="5" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontStyle=4;fontSize=12;fillColor=#dae8fc;strokeColor=#6c8ebf;" value=":Browser" vertex="1">
+          <mxGeometry height="40" width="140" x="190" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="6" edge="1" parent="1" style="endArrow=none;dashed=1;dashPattern=4 4;strokeColor=#999999;html=1;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="260" y="70" as="sourcePoint" />
+            <mxPoint x="260" y="1140" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="7" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontStyle=4;fontSize=12;fillColor=#dae8fc;strokeColor=#6c8ebf;" value=":SessionController" vertex="1">
+          <mxGeometry height="40" width="140" x="390" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="8" edge="1" parent="1" style="endArrow=none;dashed=1;dashPattern=4 4;strokeColor=#999999;html=1;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="460" y="70" as="sourcePoint" />
+            <mxPoint x="460" y="1140" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="9" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontStyle=4;fontSize=12;fillColor=#dae8fc;strokeColor=#6c8ebf;" value=":SessionService" vertex="1">
+          <mxGeometry height="40" width="140" x="590" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="10" edge="1" parent="1" style="endArrow=none;dashed=1;dashPattern=4 4;strokeColor=#999999;html=1;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="660" y="70" as="sourcePoint" />
+            <mxPoint x="660" y="1140" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="11" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontStyle=4;fontSize=12;fillColor=#dae8fc;strokeColor=#6c8ebf;" value=":NotificationService" vertex="1">
+          <mxGeometry height="40" width="140" x="790" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="12" edge="1" parent="1" style="endArrow=none;dashed=1;dashPattern=4 4;strokeColor=#999999;html=1;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="860" y="70" as="sourcePoint" />
+            <mxPoint x="860" y="1140" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="13" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontStyle=4;fontSize=12;fillColor=#dae8fc;strokeColor=#6c8ebf;" value=":WebRTCSignalingService" vertex="1">
+          <mxGeometry height="40" width="140" x="990" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="14" edge="1" parent="1" style="endArrow=none;dashed=1;dashPattern=4 4;strokeColor=#999999;html=1;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1060" y="70" as="sourcePoint" />
+            <mxPoint x="1060" y="1140" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="15" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontStyle=4;fontSize=12;fillColor=#dae8fc;strokeColor=#6c8ebf;" value=":SessionRepository" vertex="1">
+          <mxGeometry height="40" width="140" x="1190" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="16" edge="1" parent="1" style="endArrow=none;dashed=1;dashPattern=4 4;strokeColor=#999999;html=1;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1260" y="70" as="sourcePoint" />
+            <mxPoint x="1260" y="1140" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="17" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontStyle=4;fontSize=12;fillColor=#dae8fc;strokeColor=#6c8ebf;" value=":Database" vertex="1">
+          <mxGeometry height="40" width="140" x="1390" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="18" edge="1" parent="1" style="endArrow=none;dashed=1;dashPattern=4 4;strokeColor=#999999;html=1;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1460" y="70" as="sourcePoint" />
+            <mxPoint x="1460" y="1140" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="19" parent="1" style="fillColor=#E6E6E6;strokeColor=#666666;html=1;" value="" vertex="1">
+          <mxGeometry height="450" width="12" x="54" y="195" as="geometry" />
+        </mxCell>
+        <mxCell id="20" parent="1" style="fillColor=#E6E6E6;strokeColor=#666666;html=1;" value="" vertex="1">
+          <mxGeometry height="370" width="12" x="54" y="675" as="geometry" />
+        </mxCell>
+        <mxCell id="21" parent="1" style="fillColor=#E6E6E6;strokeColor=#666666;html=1;" value="" vertex="1">
+          <mxGeometry height="50" width="12" x="254" y="115" as="geometry" />
+        </mxCell>
+        <mxCell id="22" parent="1" style="fillColor=#E6E6E6;strokeColor=#666666;html=1;" value="" vertex="1">
+          <mxGeometry height="450" width="12" x="254" y="195" as="geometry" />
+        </mxCell>
+        <mxCell id="23" parent="1" style="fillColor=#E6E6E6;strokeColor=#666666;html=1;" value="" vertex="1">
+          <mxGeometry height="370" width="12" x="254" y="675" as="geometry" />
+        </mxCell>
+        <mxCell id="24" parent="1" style="fillColor=#E6E6E6;strokeColor=#666666;html=1;" value="" vertex="1">
+          <mxGeometry height="370" width="12" x="454" y="235" as="geometry" />
+        </mxCell>
+        <mxCell id="25" parent="1" style="fillColor=#E6E6E6;strokeColor=#666666;html=1;" value="" vertex="1">
+          <mxGeometry height="290" width="12" x="454" y="715" as="geometry" />
+        </mxCell>
+        <mxCell id="26" parent="1" style="fillColor=#E6E6E6;strokeColor=#666666;html=1;" value="" vertex="1">
+          <mxGeometry height="290" width="12" x="654" y="275" as="geometry" />
+        </mxCell>
+        <mxCell id="27" parent="1" style="fillColor=#E6E6E6;strokeColor=#666666;html=1;" value="" vertex="1">
+          <mxGeometry height="210" width="12" x="654" y="755" as="geometry" />
+        </mxCell>
+        <mxCell id="28" parent="1" style="fillColor=#E6E6E6;strokeColor=#666666;html=1;" value="" vertex="1">
+          <mxGeometry height="930" width="12" x="854" y="115" as="geometry" />
+        </mxCell>
+        <mxCell id="29" parent="1" style="fillColor=#E6E6E6;strokeColor=#666666;html=1;" value="" vertex="1">
+          <mxGeometry height="50" width="12" x="1054" y="315" as="geometry" />
+        </mxCell>
+        <mxCell id="30" parent="1" style="fillColor=#E6E6E6;strokeColor=#666666;html=1;" value="" vertex="1">
+          <mxGeometry height="130" width="12" x="1254" y="395" as="geometry" />
+        </mxCell>
+        <mxCell id="31" parent="1" style="fillColor=#E6E6E6;strokeColor=#666666;html=1;" value="" vertex="1">
+          <mxGeometry height="130" width="12" x="1254" y="795" as="geometry" />
+        </mxCell>
+        <mxCell id="32" parent="1" style="fillColor=#E6E6E6;strokeColor=#666666;html=1;" value="" vertex="1">
+          <mxGeometry height="50" width="12" x="1454" y="435" as="geometry" />
+        </mxCell>
+        <mxCell id="33" parent="1" style="fillColor=#E6E6E6;strokeColor=#666666;html=1;" value="" vertex="1">
+          <mxGeometry height="50" width="12" x="1454" y="835" as="geometry" />
+        </mxCell>
+        <mxCell id="34" edge="1" parent="1" style="endArrow=block;endFill=1;html=1;fontSize=10;labelBackgroundColor=#FFFFFF;align=center;verticalAlign=bottom;" value="1: pushSessionRequest(sessionId, userName, category)">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="860" y="120" as="sourcePoint" />
+            <mxPoint x="260" y="120" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="35" edge="1" parent="1" style="dashed=1;endArrow=open;endFill=0;html=1;fontSize=10;labelBackgroundColor=#FFFFFF;align=center;verticalAlign=bottom;" value="1.1: displayNotificationModal">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="260" y="160" as="sourcePoint" />
+            <mxPoint x="60" y="160" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="36" edge="1" parent="1" style="endArrow=block;endFill=1;html=1;fontSize=10;labelBackgroundColor=#FFFFFF;align=center;verticalAlign=bottom;" value="2: clickAcceptSession(sessionId)">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="60" y="200" as="sourcePoint" />
+            <mxPoint x="260" y="200" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="37" edge="1" parent="1" style="endArrow=block;endFill=1;html=1;fontSize=10;labelBackgroundColor=#FFFFFF;align=center;verticalAlign=bottom;" value="2.1: POST acceptSession(sessionId, model)">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="260" y="240" as="sourcePoint" />
+            <mxPoint x="460" y="240" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="38" edge="1" parent="1" style="endArrow=block;endFill=1;html=1;fontSize=10;labelBackgroundColor=#FFFFFF;align=center;verticalAlign=bottom;" value="2.1.1: acceptSession(sessionId)">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="460" y="280" as="sourcePoint" />
+            <mxPoint x="660" y="280" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="39" edge="1" parent="1" style="endArrow=block;endFill=1;html=1;fontSize=10;labelBackgroundColor=#FFFFFF;align=center;verticalAlign=bottom;" value="2.1.1.1: createOffer(sessionId, helperId)">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="660" y="320" as="sourcePoint" />
+            <mxPoint x="1060" y="320" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="40" edge="1" parent="1" style="dashed=1;endArrow=open;endFill=0;html=1;fontSize=10;labelBackgroundColor=#FFFFFF;align=center;verticalAlign=bottom;" value="2.1.1.2: SignalData">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1060" y="360" as="sourcePoint" />
+            <mxPoint x="660" y="360" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="41" edge="1" parent="1" style="endArrow=block;endFill=1;html=1;fontSize=10;labelBackgroundColor=#FFFFFF;align=center;verticalAlign=bottom;" value="2.1.1.3: save(session)">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="660" y="400" as="sourcePoint" />
+            <mxPoint x="1260" y="400" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="42" edge="1" parent="1" style="endArrow=block;endFill=1;html=1;fontSize=10;labelBackgroundColor=#FFFFFF;align=center;verticalAlign=bottom;" value="2.1.1.3.1: UPDATE session SET status=CONNECTED">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1260" y="440" as="sourcePoint" />
+            <mxPoint x="1460" y="440" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="43" edge="1" parent="1" style="dashed=1;endArrow=open;endFill=0;html=1;fontSize=10;labelBackgroundColor=#FFFFFF;align=center;verticalAlign=bottom;" value="2.1.1.3.2: session">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1460" y="480" as="sourcePoint" />
+            <mxPoint x="1260" y="480" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="44" edge="1" parent="1" style="dashed=1;endArrow=open;endFill=0;html=1;fontSize=10;labelBackgroundColor=#FFFFFF;align=center;verticalAlign=bottom;" value="2.1.1.4: Session">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1260" y="520" as="sourcePoint" />
+            <mxPoint x="660" y="520" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="45" edge="1" parent="1" style="dashed=1;endArrow=open;endFill=0;html=1;fontSize=10;labelBackgroundColor=#FFFFFF;align=center;verticalAlign=bottom;" value="2.1.2: Session">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="660" y="560" as="sourcePoint" />
+            <mxPoint x="460" y="560" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="46" edge="1" parent="1" style="dashed=1;endArrow=open;endFill=0;html=1;fontSize=10;labelBackgroundColor=#FFFFFF;align=center;verticalAlign=bottom;" value="2.1.3: &quot;session-active&quot; (view)">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="460" y="600" as="sourcePoint" />
+            <mxPoint x="260" y="600" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="47" edge="1" parent="1" style="dashed=1;endArrow=open;endFill=0;html=1;fontSize=10;labelBackgroundColor=#FFFFFF;align=center;verticalAlign=bottom;" value="2.2: displayActiveVideoSession">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="260" y="640" as="sourcePoint" />
+            <mxPoint x="60" y="640" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="48" edge="1" parent="1" style="endArrow=block;endFill=1;html=1;fontSize=10;labelBackgroundColor=#FFFFFF;align=center;verticalAlign=bottom;" value="3: clickRejectSession(sessionId)">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="60" y="680" as="sourcePoint" />
+            <mxPoint x="260" y="680" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="49" edge="1" parent="1" style="endArrow=block;endFill=1;html=1;fontSize=10;labelBackgroundColor=#FFFFFF;align=center;verticalAlign=bottom;" value="3.1: POST rejectSession(sessionId, model)">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="260" y="720" as="sourcePoint" />
+            <mxPoint x="460" y="720" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="50" edge="1" parent="1" style="endArrow=block;endFill=1;html=1;fontSize=10;labelBackgroundColor=#FFFFFF;align=center;verticalAlign=bottom;" value="3.1.1: rejectSession(sessionId)">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="460" y="760" as="sourcePoint" />
+            <mxPoint x="660" y="760" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="51" edge="1" parent="1" style="endArrow=block;endFill=1;html=1;fontSize=10;labelBackgroundColor=#FFFFFF;align=center;verticalAlign=bottom;" value="3.1.1.1: save(session)">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="660" y="800" as="sourcePoint" />
+            <mxPoint x="1260" y="800" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="52" edge="1" parent="1" style="endArrow=block;endFill=1;html=1;fontSize=10;labelBackgroundColor=#FFFFFF;align=center;verticalAlign=bottom;" value="3.1.1.1.1: UPDATE session SET status=REJECTED">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1260" y="840" as="sourcePoint" />
+            <mxPoint x="1460" y="840" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="53" edge="1" parent="1" style="dashed=1;endArrow=open;endFill=0;html=1;fontSize=10;labelBackgroundColor=#FFFFFF;align=center;verticalAlign=bottom;" value="3.1.1.1.2: session">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1460" y="880" as="sourcePoint" />
+            <mxPoint x="1260" y="880" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="54" edge="1" parent="1" style="dashed=1;endArrow=open;endFill=0;html=1;fontSize=10;labelBackgroundColor=#FFFFFF;align=center;verticalAlign=bottom;" value="3.1.1.2: Session">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1260" y="920" as="sourcePoint" />
+            <mxPoint x="660" y="920" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="55" edge="1" parent="1" style="dashed=1;endArrow=open;endFill=0;html=1;fontSize=10;labelBackgroundColor=#FFFFFF;align=center;verticalAlign=bottom;" value="3.1.2: Session">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="660" y="960" as="sourcePoint" />
+            <mxPoint x="460" y="960" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="56" edge="1" parent="1" style="dashed=1;endArrow=open;endFill=0;html=1;fontSize=10;labelBackgroundColor=#FFFFFF;align=center;verticalAlign=bottom;" value="3.1.3: &quot;redirect:/helper/dashboard&quot;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="460" y="1000" as="sourcePoint" />
+            <mxPoint x="260" y="1000" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="57" edge="1" parent="1" style="dashed=1;endArrow=open;endFill=0;html=1;fontSize=10;labelBackgroundColor=#FFFFFF;align=center;verticalAlign=bottom;" value="3.2: dismissModalAndRefresh">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="260" y="1040" as="sourcePoint" />
+            <mxPoint x="60" y="1040" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="58" parent="1" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=14;" value="&lt;b&gt;SD05b: Helper Receives and Responds to Session Request&lt;/b&gt;" vertex="1">
+          <mxGeometry height="30" width="506" x="40" y="-30" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
