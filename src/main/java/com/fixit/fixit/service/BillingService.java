@@ -8,6 +8,7 @@ import com.fixit.fixit.entity.User;
 import com.fixit.fixit.entity.PaymentMethod;
 import com.fixit.fixit.enums.TransactionStatus;
 import com.fixit.fixit.exception.PaymentProcessingException;
+import com.fixit.fixit.exception.ResourceNotFoundException;
 import com.fixit.fixit.repository.HelperRepository;
 import com.fixit.fixit.repository.PaymentMethodRepository;
 import com.fixit.fixit.repository.ReceiptRepository;
@@ -74,8 +75,7 @@ public class BillingService {
         // Get payment method
         PaymentMethod paymentMethod = paymentMethodRepository
                 .findById(paymentMethodId)
-                .orElseThrow(() -> new RuntimeException(
-                        "Payment method not found: " + paymentMethodId));
+                .orElseThrow(() -> new ResourceNotFoundException("PaymentMethod", "id", paymentMethodId));
 
         // Create transaction
         Transaction transaction = new Transaction();
@@ -144,8 +144,7 @@ public class BillingService {
     // =============================================
     public Receipt getReceipt(Long transactionId) {
         return receiptRepository.findByTransactionId(transactionId)
-                .orElseThrow(() -> new RuntimeException(
-                        "Receipt not found for transaction: " + transactionId));
+                .orElseThrow(() -> new ResourceNotFoundException("Receipt", "transactionId", transactionId));
     }
 
     // =============================================
@@ -167,8 +166,7 @@ public class BillingService {
     // =============================================
     public Transaction getEarningDetail(Long transactionId) {
         return transactionRepository.findById(transactionId)
-                .orElseThrow(() -> new RuntimeException(
-                        "Transaction not found: " + transactionId));
+                .orElseThrow(() -> new ResourceNotFoundException("Transaction", "id", transactionId));
     }
 
     // =============================================
@@ -196,5 +194,50 @@ public class BillingService {
                 .multiply(PLATFORM_FEE_RATE)
                 .setScale(2, RoundingMode.HALF_UP);
         return grossAmount.subtract(platformFee);
+    }
+
+    // =============================================
+    // GENERATE RECEIPT PDF
+    // =============================================
+    public byte[] generateReceiptPdf(Long transactionId) {
+        Receipt receipt = getReceipt(transactionId);
+        
+        // For now, return receipt data as bytes
+        // In production, use a PDF library like iText or Apache PDFBox
+        return receipt.getReceiptData().getBytes();
+    }
+
+    // =============================================
+    // GENERATE EARNINGS STATEMENT
+    // =============================================
+    public byte[] generateEarningsStatement(Long helperId) {
+        List<Transaction> earnings = getHelperEarnings(helperId);
+        
+        StringBuilder statement = new StringBuilder();
+        statement.append("Earnings Statement\n");
+        statement.append("Helper ID: ").append(helperId).append("\n\n");
+        
+        BigDecimal totalGross = BigDecimal.ZERO;
+        BigDecimal totalFees = BigDecimal.ZERO;
+        
+        for (Transaction transaction : earnings) {
+            if (transaction.getStatus() == TransactionStatus.SUCCEEDED) {
+                statement.append("Transaction ID: ").append(transaction.getId()).append("\n");
+                statement.append("Date: ").append(transaction.getProcessedAt()).append("\n");
+                statement.append("Amount: $").append(transaction.getAmount()).append("\n");
+                statement.append("Platform Fee: $").append(transaction.getPlatformFee()).append("\n");
+                statement.append("Net: $").append(calculateNetEarning(transaction.getAmount())).append("\n\n");
+                
+                totalGross = totalGross.add(transaction.getAmount());
+                totalFees = totalFees.add(transaction.getPlatformFee());
+            }
+        }
+        
+        statement.append("Total Gross: $").append(totalGross).append("\n");
+        statement.append("Total Fees: $").append(totalFees).append("\n");
+        statement.append("Total Net: $").append(totalGross.subtract(totalFees)).append("\n");
+        
+        // In production, use a PDF library
+        return statement.toString().getBytes();
     }
 }

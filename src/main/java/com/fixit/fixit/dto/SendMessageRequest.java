@@ -11,6 +11,9 @@ public class SendMessageRequest {
     @NotBlank(message = "Message cannot be empty")
     private String messageText;
 
+    @NotNull(message = "User ID is required")
+    private Long userId;
+
     // =====================
     // Getters and Setters
     // =====================
@@ -22,4 +25,7 @@ public class SendMessageRequest {
     public void setMessageText(String messageText) {
         this.messageText = messageText;
     }
+
+    public Long getUserId() { return userId; }
+    public void setUserId(Long userId) { this.userId = userId; }
 }

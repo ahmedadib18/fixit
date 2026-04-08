@@ -9,6 +9,9 @@ public class CreateSessionRequest {
 
     private Long categoryId;
 
+    @NotNull(message = "User ID is required")
+    private Long userId;
+
     // =====================
     // Getters and Setters
     // =====================
@@ -18,4 +21,7 @@ public class CreateSessionRequest {
 
     public Long getCategoryId() { return categoryId; }
     public void setCategoryId(Long categoryId) { this.categoryId = categoryId; }
+
+    public Long getUserId() { return userId; }
+    public void setUserId(Long userId) { this.userId = userId; }
 }

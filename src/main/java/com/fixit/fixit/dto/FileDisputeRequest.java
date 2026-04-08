@@ -18,6 +18,9 @@ public class FileDisputeRequest {
     @NotNull(message = "Respondent ID is required")
     private Long respondentId;
 
+    @NotNull(message = "Complainant ID is required")
+    private Long complainantId;
+
     // =====================
     // Getters and Setters
     // =====================
@@ -38,5 +41,10 @@ public class FileDisputeRequest {
     public Long getRespondentId() { return respondentId; }
     public void setRespondentId(Long respondentId) {
         this.respondentId = respondentId;
+    }
+
+    public Long getComplainantId() { return complainantId; }
+    public void setComplainantId(Long complainantId) {
+        this.complainantId = complainantId;
     }
 }

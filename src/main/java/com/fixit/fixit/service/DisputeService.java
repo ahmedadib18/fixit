@@ -160,4 +160,11 @@ public class DisputeService {
     public List<Dispute> getDisputesBySession(String sessionId) {
         return disputeRepository.findBySessionId(sessionId);
     }
+
+    // =============================================
+    // GET DISPUTES BY COMPLAINANT
+    // =============================================
+    public List<Dispute> getDisputesByComplainant(Long complainantId) {
+        return disputeRepository.findByComplainantId(complainantId);
+    }
 }

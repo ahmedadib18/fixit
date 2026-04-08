@@ -1,6 +1,7 @@
 package com.fixit.fixit.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 public class CreateTicketRequest {
 
@@ -11,6 +12,9 @@ public class CreateTicketRequest {
     private String description;
 
     private String sessionId;
+
+    @NotNull(message = "User ID is required")
+    private Long userId;
 
     // =====================
     // Getters and Setters
@@ -26,4 +30,7 @@ public class CreateTicketRequest {
 
     public String getSessionId() { return sessionId; }
     public void setSessionId(String sessionId) { this.sessionId = sessionId; }
+
+    public Long getUserId() { return userId; }
+    public void setUserId(Long userId) { this.userId = userId; }
 }

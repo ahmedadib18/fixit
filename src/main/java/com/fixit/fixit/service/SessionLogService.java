@@ -2,6 +2,7 @@ package com.fixit.fixit.service;
 
 import com.fixit.fixit.entity.Session;
 import com.fixit.fixit.entity.SessionChatMessage;
+import com.fixit.fixit.exception.ResourceNotFoundException;
 import com.fixit.fixit.exception.UnauthorizedException;
 import com.fixit.fixit.repository.SessionChatMessageRepository;
 import com.fixit.fixit.repository.SessionRepository;
@@ -23,8 +24,7 @@ public class SessionLogService {
     // =============================================
     public Session getSessionLog(String sessionId) {
         return sessionRepository.findById(sessionId)
-                .orElseThrow(() -> new RuntimeException(
-                        "Session not found: " + sessionId));
+                .orElseThrow(() -> new ResourceNotFoundException("Session", "id", sessionId));
     }
 
     // =============================================
@@ -86,7 +86,7 @@ public class SessionLogService {
     // =============================================
     // EXPORT SESSION LOG
     // =============================================
-    public String exportSessionLog(String sessionId) {
+    public byte[] exportSessionLog(String sessionId) {
         Session session = getSessionLog(sessionId);
         List<SessionChatMessage> messages = getSessionChatLog(sessionId);
 
@@ -125,7 +125,7 @@ public class SessionLogService {
                 .append(msg.getMessageText())
                 .append("\n"));
 
-        return export.toString();
+        return export.toString().getBytes();
     }
 
     // =============================================

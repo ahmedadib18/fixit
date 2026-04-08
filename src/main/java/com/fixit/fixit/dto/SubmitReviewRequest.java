@@ -13,6 +13,12 @@ public class SubmitReviewRequest {
 
     private String reviewText;
 
+    @NotNull(message = "User ID is required")
+    private Long userId;
+
+    @NotNull(message = "Helper ID is required")
+    private Long helperId;
+
     // =====================
     // Getters and Setters
     // =====================
@@ -22,4 +28,10 @@ public class SubmitReviewRequest {
 
     public String getReviewText() { return reviewText; }
     public void setReviewText(String reviewText) { this.reviewText = reviewText; }
+
+    public Long getUserId() { return userId; }
+    public void setUserId(Long userId) { this.userId = userId; }
+
+    public Long getHelperId() { return helperId; }
+    public void setHelperId(Long helperId) { this.helperId = helperId; }
 }
