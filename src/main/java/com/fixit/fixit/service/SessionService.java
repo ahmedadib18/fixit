@@ -16,6 +16,7 @@ import com.fixit.fixit.repository.SessionRepository;
 import com.fixit.fixit.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -41,6 +42,7 @@ public class SessionService {
     // =============================================
     // INITIATE SESSION
     // =============================================
+    @Transactional
     public Session initiateSession(Long userId,
                                    Long helperId,
                                    Long categoryId) {
@@ -52,6 +54,11 @@ public class SessionService {
         // Find helper
         Helper helper = helperRepository.findById(helperId)
                 .orElseThrow(() -> new ResourceNotFoundException("Helper", "id", helperId));
+
+        // Force initialization of helper categories
+        if (helper.getCategories() != null) {
+            helper.getCategories().size();
+        }
 
         // Find category if provided
         Category category = null;
@@ -75,9 +82,9 @@ public class SessionService {
         session.setStatus(SessionStatus.INITIATED);
 
         // Set helper rate from their category
-        if (category != null) {
+        if (category != null && helper.getCategories() != null) {
             helper.getCategories().stream()
-                    .filter(hc -> hc.getCategory().getId().equals(categoryId))
+                    .filter(hc -> hc.getCategory() != null && hc.getCategory().getId().equals(categoryId))
                     .findFirst()
                     .ifPresent(hc -> session.setHelperRate(hc.getHourlyRate()));
         }
@@ -88,6 +95,7 @@ public class SessionService {
     // =============================================
     // ACCEPT SESSION
     // =============================================
+    @Transactional
     public Session acceptSession(String sessionId) {
         Session session = findById(sessionId);
 
@@ -103,6 +111,7 @@ public class SessionService {
     // =============================================
     // REJECT SESSION
     // =============================================
+    @Transactional
     public Session rejectSession(String sessionId) {
         Session session = findById(sessionId);
 
@@ -117,11 +126,20 @@ public class SessionService {
     // =============================================
     // END SESSION
     // =============================================
+    @Transactional
     public Session endSession(String sessionId) {
         Session session = findById(sessionId);
 
-        if (session.getStatus() != SessionStatus.CONNECTED) {
+        // Allow ending from INITIATED, CONNECTED, or IN_PROGRESS status
+        if (session.getStatus() == SessionStatus.ENDED || 
+            session.getStatus() == SessionStatus.CANCELLED ||
+            session.getStatus() == SessionStatus.REJECTED) {
             throw new SessionException("Session cannot be ended. Current status: " + session.getStatus());
+        }
+
+        // Set started time if not already set
+        if (session.getStartedAt() == null) {
+            session.setStartedAt(LocalDateTime.now());
         }
 
         session.setStatus(SessionStatus.ENDED);
@@ -132,6 +150,7 @@ public class SessionService {
     // =============================================
     // CANCEL SESSION
     // =============================================
+    @Transactional
     public Session cancelSession(String sessionId) {
         Session session = findById(sessionId);
 
@@ -147,6 +166,7 @@ public class SessionService {
     // =============================================
     // SEND MESSAGE
     // =============================================
+    @Transactional
     public SessionChatMessage sendMessage(String sessionId,
                                           Long userId,
                                           String messageText) {
@@ -168,9 +188,23 @@ public class SessionService {
     // =============================================
     // GET SESSION BY ID
     // =============================================
+    @Transactional(readOnly = true)
     public Session findById(String sessionId) {
-        return sessionRepository.findById(sessionId)
+        Session session = sessionRepository.findById(sessionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Session", "id", sessionId));
+        
+        // Force initialization of lazy collections
+        if (session.getUser() != null) {
+            session.getUser().getFirstName();
+        }
+        if (session.getHelper() != null && session.getHelper().getUser() != null) {
+            session.getHelper().getUser().getFirstName();
+        }
+        if (session.getCategory() != null) {
+            session.getCategory().getName();
+        }
+        
+        return session;
     }
 
     // =============================================

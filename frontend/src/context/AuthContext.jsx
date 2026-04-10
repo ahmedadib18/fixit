@@ -31,7 +31,7 @@ export const AuthProvider = ({ children }) => {
     const data = await authService.login(credentials)
     setToken(data.token)
     setUser({
-      id: data.id,
+      id: data.userId,
       email: data.email,
       firstName: data.firstName,
       lastName: data.lastName,
@@ -39,7 +39,7 @@ export const AuthProvider = ({ children }) => {
     })
     localStorage.setItem('token', data.token)
     localStorage.setItem('user', JSON.stringify({
-      id: data.id,
+      id: data.userId,
       email: data.email,
       firstName: data.firstName,
       lastName: data.lastName,
@@ -52,7 +52,7 @@ export const AuthProvider = ({ children }) => {
     const data = await authService.register(userData)
     setToken(data.token)
     setUser({
-      id: data.id,
+      id: data.userId,
       email: data.email,
       firstName: data.firstName,
       lastName: data.lastName,
@@ -60,7 +60,7 @@ export const AuthProvider = ({ children }) => {
     })
     localStorage.setItem('token', data.token)
     localStorage.setItem('user', JSON.stringify({
-      id: data.id,
+      id: data.userId,
       email: data.email,
       firstName: data.firstName,
       lastName: data.lastName,

@@ -1,5 +1,7 @@
 package com.fixit.fixit.controller;
 
+import com.fixit.fixit.dto.HelperDetailResponse;
+import com.fixit.fixit.dto.HelperSearchResponse;
 import com.fixit.fixit.entity.Helper;
 import com.fixit.fixit.entity.Review;
 import com.fixit.fixit.service.SearchService;
@@ -10,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/search")
@@ -35,7 +38,13 @@ public class SearchController {
                     availableNow,
                     cityId
             );
-            return ResponseEntity.ok(helpers);
+            
+            // Convert to DTOs
+            List<HelperSearchResponse> response = helpers.stream()
+                    .map(HelperSearchResponse::new)
+                    .collect(Collectors.toList());
+            
+            return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage(), HttpStatus.BAD_REQUEST.value()));
         }
@@ -48,7 +57,7 @@ public class SearchController {
             Double avgRating = searchService.getHelperAverageRating(helperId);
             List<Review> reviews = searchService.getHelperReviews(helperId);
 
-            HelperProfileResponse response = new HelperProfileResponse(helper, avgRating, reviews);
+            HelperDetailResponse response = new HelperDetailResponse(helper, avgRating, reviews);
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage(), HttpStatus.BAD_REQUEST.value()));
@@ -56,27 +65,6 @@ public class SearchController {
     }
 
     // Inner classes for responses
-    private static class HelperProfileResponse {
-        private Helper helper;
-        private Double averageRating;
-        private List<Review> reviews;
-
-        public HelperProfileResponse(Helper helper, Double averageRating, List<Review> reviews) {
-            this.helper = helper;
-            this.averageRating = averageRating;
-            this.reviews = reviews;
-        }
-
-        public Helper getHelper() { return helper; }
-        public void setHelper(Helper helper) { this.helper = helper; }
-
-        public Double getAverageRating() { return averageRating; }
-        public void setAverageRating(Double averageRating) { this.averageRating = averageRating; }
-
-        public List<Review> getReviews() { return reviews; }
-        public void setReviews(List<Review> reviews) { this.reviews = reviews; }
-    }
-
     private static class ErrorResponse {
         private String message;
         private int status;

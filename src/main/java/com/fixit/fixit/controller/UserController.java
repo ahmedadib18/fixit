@@ -2,6 +2,7 @@ package com.fixit.fixit.controller;
 
 import com.fixit.fixit.dto.AddPaymentMethodRequest;
 import com.fixit.fixit.dto.UpdateProfileRequest;
+import com.fixit.fixit.dto.UserProfileResponse;
 import com.fixit.fixit.entity.PaymentMethod;
 import com.fixit.fixit.entity.Session;
 import com.fixit.fixit.entity.User;
@@ -34,7 +35,8 @@ public class UserController {
     public ResponseEntity<?> getUserProfile(@PathVariable Long userId) {
         try {
             User user = userService.findById(userId);
-            return ResponseEntity.ok(user);
+            UserProfileResponse response = new UserProfileResponse(user);
+            return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage(), HttpStatus.BAD_REQUEST.value()));
         }
@@ -53,7 +55,8 @@ public class UserController {
                     request.getPhone(),
                     request.getCityId()
             );
-            return ResponseEntity.ok(updatedUser);
+            UserProfileResponse response = new UserProfileResponse(updatedUser);
+            return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage(), HttpStatus.BAD_REQUEST.value()));
         }
@@ -115,7 +118,8 @@ public class UserController {
         try {
             String imageUrl = fileStorageService.storeProfileImage(file, userId);
             User user = userService.updateProfileImage(userId, imageUrl);
-            return ResponseEntity.ok(user);
+            UserProfileResponse response = new UserProfileResponse(user);
+            return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage(), HttpStatus.BAD_REQUEST.value()));
         }

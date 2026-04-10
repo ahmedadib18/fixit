@@ -8,6 +8,7 @@ import com.fixit.fixit.repository.SessionChatMessageRepository;
 import com.fixit.fixit.repository.SessionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Service
@@ -22,9 +23,23 @@ public class SessionLogService {
     // =============================================
     // GET SESSION LOG
     // =============================================
+    @Transactional(readOnly = true)
     public Session getSessionLog(String sessionId) {
-        return sessionRepository.findById(sessionId)
+        Session session = sessionRepository.findById(sessionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Session", "id", sessionId));
+        
+        // Force initialization of lazy collections
+        if (session.getUser() != null) {
+            session.getUser().getFirstName();
+        }
+        if (session.getHelper() != null && session.getHelper().getUser() != null) {
+            session.getHelper().getUser().getFirstName();
+        }
+        if (session.getCategory() != null) {
+            session.getCategory().getName();
+        }
+        
+        return session;
     }
 
     // =============================================
@@ -38,6 +53,7 @@ public class SessionLogService {
     // =============================================
     // UPDATE USER CONSENT
     // =============================================
+    @Transactional
     public Session updateUserConsent(String sessionId,
                                      Long userId,
                                      Boolean consentValue) {
@@ -56,6 +72,7 @@ public class SessionLogService {
     // =============================================
     // UPDATE HELPER CONSENT
     // =============================================
+    @Transactional
     public Session updateHelperConsent(String sessionId,
                                        Long helperId,
                                        Boolean consentValue) {
@@ -86,6 +103,7 @@ public class SessionLogService {
     // =============================================
     // EXPORT SESSION LOG
     // =============================================
+    @Transactional(readOnly = true)
     public byte[] exportSessionLog(String sessionId) {
         Session session = getSessionLog(sessionId);
         List<SessionChatMessage> messages = getSessionChatLog(sessionId);
@@ -131,6 +149,7 @@ public class SessionLogService {
     // =============================================
     // REQUEST LOG DELETION
     // =============================================
+    @Transactional
     public Session requestLogDeletion(String sessionId) {
         Session session = getSessionLog(sessionId);
         session.setDeletionRequested(true);
@@ -140,6 +159,7 @@ public class SessionLogService {
     // =============================================
     // UPDATE RETENTION MONTHS
     // =============================================
+    @Transactional
     public Session updateRetentionMonths(String sessionId,
                                          Integer months) {
         Session session = getSessionLog(sessionId);

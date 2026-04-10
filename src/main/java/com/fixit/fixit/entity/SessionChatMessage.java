@@ -1,5 +1,6 @@
 package com.fixit.fixit.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fixit.fixit.enums.MessageType;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
@@ -14,10 +15,12 @@ public class SessionChatMessage {
 
     @ManyToOne
     @JoinColumn(name = "session_id", nullable = false)
+    @JsonIgnoreProperties({"user", "helper", "category", "chatMessages"})
     private Session session;
 
     @ManyToOne
     @JoinColumn(name = "sender_id", nullable = false)
+    @JsonIgnoreProperties({"password", "passwordHash", "sessions", "helper"})
     private User sender;
 
     @Column(name = "message_text", columnDefinition = "TEXT")

@@ -1,5 +1,6 @@
 package com.fixit.fixit.controller;
 
+import com.fixit.fixit.dto.HelperProfileResponse;
 import com.fixit.fixit.dto.UpdateHelperProfileRequest;
 import com.fixit.fixit.entity.Helper;
 import com.fixit.fixit.entity.HelperCategory;
@@ -24,12 +25,16 @@ public class HelperController {
     @Autowired
     private FileStorageService fileStorageService;
 
+    @Autowired
+    private com.fixit.fixit.service.SessionService sessionService;
+
     // Get helper profile by USER ID (not helper ID)
     @GetMapping("/by-user/{userId}")
     public ResponseEntity<?> getHelperByUserId(@PathVariable Long userId) {
         try {
             Helper helper = helperService.findByUserId(userId);
-            return ResponseEntity.ok(helper);
+            HelperProfileResponse response = new HelperProfileResponse(helper);
+            return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest()
                     .body(new ErrorResponse(e.getMessage(),
@@ -57,7 +62,10 @@ public class HelperController {
                 );
             }
 
-            return ResponseEntity.ok(helper);
+            // Reload helper to get updated categories
+            helper = helperService.findById(helperId);
+            HelperProfileResponse response = new HelperProfileResponse(helper);
+            return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage(), HttpStatus.BAD_REQUEST.value()));
         }
@@ -83,7 +91,18 @@ public class HelperController {
             @RequestBody AvailabilityRequest request) {
         try {
             Helper helper = helperService.updateAvailability(helperId, request.getIsAvailable());
-            return ResponseEntity.ok(helper);
+            HelperProfileResponse response = new HelperProfileResponse(helper);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage(), HttpStatus.BAD_REQUEST.value()));
+        }
+    }
+
+    @GetMapping("/{helperId}/sessions")
+    public ResponseEntity<?> getHelperSessions(@PathVariable Long helperId) {
+        try {
+            List<com.fixit.fixit.entity.Session> sessions = sessionService.getHelperSessions(helperId);
+            return ResponseEntity.ok(sessions);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage(), HttpStatus.BAD_REQUEST.value()));
         }

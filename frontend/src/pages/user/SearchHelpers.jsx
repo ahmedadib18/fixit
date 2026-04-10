@@ -114,12 +114,23 @@ const SearchHelpers = () => {
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
               {helpers.map(helper => (
-                <div key={helper.id} className="card" style={{ margin: 0 }}>
-                  <h4>{helper.user?.firstName} {helper.user?.lastName}</h4>
+                <div key={helper.id} className="card" style={{ margin: 0, display: 'flex', flexDirection: 'column' }}>
+                  <h4>{helper.firstName} {helper.lastName}</h4>
                   <p><strong>Headline:</strong> {helper.professionalHeadline || 'No headline'}</p>
                   <p><strong>Languages:</strong> {helper.languagesSpoken || 'Not specified'}</p>
+                  <p><strong>Location:</strong> {helper.cityName}, {helper.countryName}</p>
                   <p><strong>Available:</strong> {helper.isAvailable ? 'Yes' : 'No'}</p>
-                  <Link to={`/user/helper/${helper.id}`} className="btn btn-primary" style={{ marginTop: '10px' }}>
+                  {helper.specializations && helper.specializations.length > 0 && (
+                    <div style={{ marginBottom: '15px' }}>
+                      <strong>Services:</strong>
+                      <ul style={{ marginTop: '5px', paddingLeft: '20px', marginBottom: '0' }}>
+                        {helper.specializations.map((spec, idx) => (
+                          <li key={idx}>{spec.categoryName} - ${spec.hourlyRate}/hr</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  <Link to={`/user/helper/${helper.id}`} className="btn btn-primary" style={{ marginTop: 'auto' }}>
                     View Profile
                   </Link>
                 </div>

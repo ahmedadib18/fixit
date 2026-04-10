@@ -6,6 +6,7 @@ import com.fixit.fixit.repository.HelperRepository;
 import com.fixit.fixit.repository.ReviewRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -21,6 +22,7 @@ public class SearchService {
     // =============================================
     // SEARCH HELPERS
     // =============================================
+    @Transactional(readOnly = true)
     public List<Helper> searchHelpers(Long categoryId,
                                       Double minRating,
                                       BigDecimal maxPrice,
@@ -35,6 +37,19 @@ public class SearchService {
                 maxPrice,
                 availableNow,
                 cityId);
+
+        // Force initialization of collections
+        helpers.forEach(helper -> {
+            if (helper.getCategories() != null) {
+                helper.getCategories().size();
+            }
+            if (helper.getUser() != null && helper.getUser().getCity() != null) {
+                helper.getUser().getCity().getName();
+                if (helper.getUser().getCity().getCountry() != null) {
+                    helper.getUser().getCity().getCountry().getName();
+                }
+            }
+        });
 
         // Filter by minimum rating if provided
         if (minRating != null) {
@@ -66,10 +81,29 @@ public class SearchService {
     // =============================================
     // GET HELPER PROFILE
     // =============================================
+    @Transactional(readOnly = true)
     public Helper getHelperProfile(Long helperId) {
-        return helperRepository.findByIdWithUser(helperId)
+        Helper helper = helperRepository.findByIdWithUser(helperId)
                 .orElseThrow(() -> new RuntimeException(
                         "Helper not found: " + helperId));
+        
+        // Force initialization of collections
+        if (helper.getCategories() != null) {
+            helper.getCategories().size();
+            helper.getCategories().forEach(hc -> {
+                if (hc.getCategory() != null) {
+                    hc.getCategory().getName();
+                }
+            });
+        }
+        if (helper.getUser() != null && helper.getUser().getCity() != null) {
+            helper.getUser().getCity().getName();
+            if (helper.getUser().getCity().getCountry() != null) {
+                helper.getUser().getCity().getCountry().getName();
+            }
+        }
+        
+        return helper;
     }
 
     // =============================================

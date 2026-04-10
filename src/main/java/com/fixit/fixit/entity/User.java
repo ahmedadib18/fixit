@@ -1,5 +1,6 @@
 package com.fixit.fixit.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fixit.fixit.enums.AccountStatus;
 import com.fixit.fixit.enums.UserType;
 import jakarta.persistence.*;
@@ -16,6 +17,7 @@ public class User {
     @Column(name = "email", nullable = false, unique = true, length = 255)
     private String email;
 
+    @JsonIgnore
     @Column(name = "password_hash", length = 255)
     private String passwordHash;
 

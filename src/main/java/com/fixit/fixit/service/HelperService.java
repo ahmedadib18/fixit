@@ -35,17 +35,33 @@ public class HelperService {
     // =============================================
     // FIND HELPER BY ID
     // =============================================
+    @Transactional(readOnly = true)
     public Helper findById(Long helperId) {
-        return helperRepository.findById(helperId)
+        Helper helper = helperRepository.findById(helperId)
                 .orElseThrow(() -> new ResourceNotFoundException("Helper", "id", helperId));
+        
+        // Force initialization of categories collection
+        if (helper.getCategories() != null) {
+            helper.getCategories().size();
+        }
+        
+        return helper;
     }
 
     // =============================================
     // FIND HELPER BY USER ID
     // =============================================
+    @Transactional(readOnly = true)
     public Helper findByUserId(Long userId) {
-        return helperRepository.findByUserId(userId)
+        Helper helper = helperRepository.findByUserId(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Helper profile not found for user: " + userId));
+        
+        // Force initialization of categories collection
+        if (helper.getCategories() != null) {
+            helper.getCategories().size();
+        }
+        
+        return helper;
     }
 
     // =============================================
@@ -69,13 +85,21 @@ public class HelperService {
     // =============================================
     // SAVE HELPER PROFILE
     // =============================================
+    @Transactional
     public Helper saveHelperProfile(Long helperId,
                                     String headline,
                                     String languages) {
         Helper helper = findById(helperId);
         helper.setProfessionalHeadline(headline);
         helper.setLanguagesSpoken(languages);
-        return helperRepository.save(helper);
+        Helper saved = helperRepository.save(helper);
+        
+        // Force initialization of categories collection
+        if (saved.getCategories() != null) {
+            saved.getCategories().size();
+        }
+        
+        return saved;
     }
 
     // =============================================
@@ -131,10 +155,18 @@ public class HelperService {
     // =============================================
     // UPDATE AVAILABILITY
     // =============================================
+    @Transactional
     public Helper updateAvailability(Long helperId, Boolean isAvailable) {
         Helper helper = findById(helperId);
         helper.setIsAvailable(isAvailable);
-        return helperRepository.save(helper);
+        Helper saved = helperRepository.save(helper);
+        
+        // Force initialization of categories collection
+        if (saved.getCategories() != null) {
+            saved.getCategories().size();
+        }
+        
+        return saved;
     }
 
     // =============================================

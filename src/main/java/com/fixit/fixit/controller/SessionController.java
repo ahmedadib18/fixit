@@ -2,6 +2,7 @@ package com.fixit.fixit.controller;
 
 import com.fixit.fixit.dto.CreateSessionRequest;
 import com.fixit.fixit.dto.SendMessageRequest;
+import com.fixit.fixit.dto.SessionResponse;
 import com.fixit.fixit.entity.Session;
 import com.fixit.fixit.entity.SessionChatMessage;
 import com.fixit.fixit.service.SessionLogService;
@@ -34,7 +35,8 @@ public class SessionController {
                     request.getHelperId(),
                     request.getCategoryId()
             );
-            return ResponseEntity.status(HttpStatus.CREATED).body(session);
+            SessionResponse response = new SessionResponse(session);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage(), HttpStatus.BAD_REQUEST.value()));
         }
@@ -44,7 +46,8 @@ public class SessionController {
     public ResponseEntity<?> acceptSession(@PathVariable String sessionId) {
         try {
             Session session = sessionService.acceptSession(sessionId);
-            return ResponseEntity.ok(session);
+            SessionResponse response = new SessionResponse(session);
+            return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage(), HttpStatus.BAD_REQUEST.value()));
         }
@@ -54,7 +57,8 @@ public class SessionController {
     public ResponseEntity<?> rejectSession(@PathVariable String sessionId) {
         try {
             Session session = sessionService.rejectSession(sessionId);
-            return ResponseEntity.ok(session);
+            SessionResponse response = new SessionResponse(session);
+            return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage(), HttpStatus.BAD_REQUEST.value()));
         }
@@ -64,7 +68,8 @@ public class SessionController {
     public ResponseEntity<?> endSession(@PathVariable String sessionId) {
         try {
             Session session = sessionService.endSession(sessionId);
-            return ResponseEntity.ok(session);
+            SessionResponse response = new SessionResponse(session);
+            return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage(), HttpStatus.BAD_REQUEST.value()));
         }
@@ -74,7 +79,8 @@ public class SessionController {
     public ResponseEntity<?> cancelSession(@PathVariable String sessionId) {
         try {
             Session session = sessionService.cancelSession(sessionId);
-            return ResponseEntity.ok(session);
+            SessionResponse response = new SessionResponse(session);
+            return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage(), HttpStatus.BAD_REQUEST.value()));
         }
@@ -102,7 +108,8 @@ public class SessionController {
             Session session = sessionLogService.getSessionLog(sessionId);
             List<SessionChatMessage> messages = sessionLogService.getSessionChatLog(sessionId);
             
-            SessionLogResponse response = new SessionLogResponse(session, messages);
+            SessionResponse sessionResponse = new SessionResponse(session);
+            SessionLogResponse response = new SessionLogResponse(sessionResponse, messages);
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage(), HttpStatus.BAD_REQUEST.value()));
@@ -122,7 +129,8 @@ public class SessionController {
             } else {
                 return ResponseEntity.badRequest().body(new ErrorResponse("Either userId or helperId must be provided", HttpStatus.BAD_REQUEST.value()));
             }
-            return ResponseEntity.ok(session);
+            SessionResponse response = new SessionResponse(session);
+            return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage(), HttpStatus.BAD_REQUEST.value()));
         }
@@ -172,16 +180,16 @@ public class SessionController {
     }
 
     private static class SessionLogResponse {
-        private Session session;
+        private SessionResponse session;
         private List<SessionChatMessage> messages;
 
-        public SessionLogResponse(Session session, List<SessionChatMessage> messages) {
+        public SessionLogResponse(SessionResponse session, List<SessionChatMessage> messages) {
             this.session = session;
             this.messages = messages;
         }
 
-        public Session getSession() { return session; }
-        public void setSession(Session session) { this.session = session; }
+        public SessionResponse getSession() { return session; }
+        public void setSession(SessionResponse session) { this.session = session; }
 
         public List<SessionChatMessage> getMessages() { return messages; }
         public void setMessages(List<SessionChatMessage> messages) { this.messages = messages; }

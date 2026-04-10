@@ -54,9 +54,11 @@ const VideoSession = () => {
         messageText: newMessage
       })
       setNewMessage('')
-      loadSession()
+      // Reload session to get updated messages
+      await loadSession()
     } catch (err) {
-      alert('Failed to send message')
+      console.error('Send message error:', err)
+      alert('Failed to send message: ' + (err.response?.data?.message || err.message))
     }
   }
 
@@ -65,9 +67,11 @@ const VideoSession = () => {
 
     try {
       await sessionService.endSession(sessionId)
+      alert('Session ended successfully')
       navigate('/user/sessions')
     } catch (err) {
-      alert('Failed to end session')
+      console.error('End session error:', err)
+      alert('Failed to end session: ' + (err.response?.data?.message || err.message))
     }
   }
 
@@ -114,11 +118,22 @@ const VideoSession = () => {
             <div className="card">
               <h3>Chat</h3>
               <div style={{ height: '300px', overflowY: 'auto', border: '1px solid #ddd', padding: '10px', marginBottom: '10px', borderRadius: '4px' }}>
-                {messages.map(msg => (
-                  <div key={msg.id} style={{ marginBottom: '10px' }}>
-                    <strong>{msg.senderId === user.id ? 'You' : 'Other'}:</strong> {msg.messageText}
-                  </div>
-                ))}
+                {messages.length === 0 ? (
+                  <p style={{ color: '#999', textAlign: 'center' }}>No messages yet</p>
+                ) : (
+                  messages.map(msg => (
+                    <div key={msg.id} style={{ marginBottom: '10px' }}>
+                      <strong>
+                        {msg.sender?.id === user.id 
+                          ? 'You' 
+                          : `${msg.sender?.firstName || 'Other'} ${msg.sender?.lastName || ''}`}:
+                      </strong> {msg.messageText}
+                      <div style={{ fontSize: '0.8em', color: '#999' }}>
+                        {msg.sentAt ? new Date(msg.sentAt).toLocaleTimeString() : ''}
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
               <form onSubmit={handleSendMessage}>
                 <div style={{ display: 'flex', gap: '10px' }}>

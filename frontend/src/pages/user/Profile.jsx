@@ -28,7 +28,9 @@ const UserProfile = () => {
 
   const loadProfile = async () => {
     try {
+      console.log('Loading profile for user ID:', user.id)
       const data = await userService.getProfile(user.id)
+      console.log('Profile data received:', data)
       setProfile(data)
       setFormData({
         firstName: data.firstName || '',
@@ -45,7 +47,9 @@ const UserProfile = () => {
         }
       }
     } catch (err) {
-      console.error('Failed to load profile', err)
+      console.error('Failed to load profile:', err)
+      console.error('Error details:', err.response?.data)
+      setMessage('Failed to load profile: ' + (err.response?.data?.message || err.message))
     } finally {
       setLoading(false)
     }

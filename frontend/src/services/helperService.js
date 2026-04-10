@@ -23,5 +23,10 @@ export const helperService = {
       headers: { 'Content-Type': 'multipart/form-data' }
     })
     return response.data
+  },
+
+  getHelperSessions: async (helperId) => {
+    const response = await api.get(`/helpers/${helperId}/sessions`)
+    return response.data
   }
 }

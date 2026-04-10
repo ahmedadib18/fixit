@@ -20,14 +20,14 @@ public interface HelperRepository extends JpaRepository<Helper, Long> {
 
 
     @Query("SELECT DISTINCT h FROM Helper h " +
+            "LEFT JOIN h.categories hc " +
+            "LEFT JOIN hc.category c " +
             "JOIN h.user u " +
-            "JOIN h.categories hc " +
-            "JOIN hc.category c " +
             "WHERE (:categoryId IS NULL OR c.id = :categoryId) " +
-            "AND (:language IS NULL OR h.languagesSpoken LIKE %:language%) " +
-            "AND (:maxPrice IS NULL OR hc.hourlyRate <= :maxPrice) " +
+            "AND (:language IS NULL OR LOWER(h.languagesSpoken) LIKE LOWER(CONCAT('%', :language, '%'))) " +
+            "AND (:maxPrice IS NULL OR hc.hourlyRate IS NULL OR hc.hourlyRate <= :maxPrice) " +
             "AND (:availableNow IS NULL OR h.isAvailable = :availableNow) " +
-            "AND u.city.id = :cityId")
+            "AND (:cityId IS NULL OR u.city.id = :cityId)")
     List<Helper> searchHelpers(
             @Param("categoryId") Long categoryId,
             @Param("language") String language,

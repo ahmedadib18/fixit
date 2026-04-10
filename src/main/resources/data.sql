@@ -122,5 +122,11 @@ INSERT INTO categories (id, name, is_active) VALUES
 INSERT INTO users (id, email, password_hash, first_name, last_name, user_type, account_status, created_at) VALUES 
 (1, 'admin@fixit.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Admin', 'User', 'ADMIN', 'ACTIVE', CURRENT_TIMESTAMP);
 
+-- Reset auto-increment sequences to avoid conflicts
+ALTER TABLE users ALTER COLUMN id RESTART WITH 100;
+ALTER TABLE countries ALTER COLUMN id RESTART WITH 100;
+ALTER TABLE cities ALTER COLUMN id RESTART WITH 100;
+ALTER TABLE categories ALTER COLUMN id RESTART WITH 100;
+
 -- Note: To create more test users, use the registration form in the frontend
 -- or use an online BCrypt generator for passwords
