@@ -1,6 +1,7 @@
 package com.fixit.fixit.service;
 
 import com.fixit.fixit.entity.City;
+import com.fixit.fixit.entity.Helper;
 import com.fixit.fixit.entity.User;
 import com.fixit.fixit.enums.AccountStatus;
 import com.fixit.fixit.enums.UserType;
@@ -9,10 +10,12 @@ import com.fixit.fixit.exception.InvalidCredentialsException;
 import com.fixit.fixit.exception.ResourceNotFoundException;
 import com.fixit.fixit.exception.UnauthorizedException;
 import com.fixit.fixit.repository.CityRepository;
+import com.fixit.fixit.repository.HelperRepository;
 import com.fixit.fixit.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 
 @Service
@@ -25,11 +28,15 @@ public class AuthenticationService {
     private CityRepository cityRepository;
 
     @Autowired
+    private HelperRepository helperRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     // =============================================
     // REGISTER
     // =============================================
+    @Transactional
     public User register(String email,
                          String password,
                          String firstName,
@@ -59,7 +66,17 @@ public class AuthenticationService {
         user.setCity(city);
         user.setAccountStatus(AccountStatus.ACTIVE);
 
-        return userRepository.save(user);
+        User savedUser = userRepository.save(user);
+
+        // If registering as HELPER, auto-create Helper profile
+        if (userType == UserType.HELPER) {
+            Helper helper = new Helper();
+            helper.setUser(savedUser);
+            helper.setIsAvailable(false);
+            helperRepository.save(helper);
+        }
+
+        return savedUser;
     }
 
     // =============================================
@@ -67,11 +84,9 @@ public class AuthenticationService {
     // =============================================
     public User login(String email, String password) {
 
-        // Find user by email
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new InvalidCredentialsException("Invalid email or password"));
 
-        // Check account status
         if (user.getAccountStatus() == AccountStatus.SUSPENDED) {
             throw new UnauthorizedException("Account is suspended");
         }
@@ -80,12 +95,10 @@ public class AuthenticationService {
             throw new UnauthorizedException("Account is banned");
         }
 
-        // Verify password
         if (!passwordEncoder.matches(password, user.getPasswordHash())) {
             throw new InvalidCredentialsException("Invalid email or password");
         }
 
-        // Update last login
         user.setLastLogin(LocalDateTime.now());
         userRepository.save(user);
 
@@ -101,13 +114,9 @@ public class AuthenticationService {
                                 String lastName,
                                 UserType userType) {
 
-        // Check if user already exists with this Google ID
         return userRepository.findByGoogleId(googleId)
                 .orElseGet(() -> {
-
-                    // Check if email already exists
                     if (userRepository.existsByEmail(email)) {
-                        // Link Google ID to existing account
                         User existingUser = userRepository.findByEmail(email)
                                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
                         existingUser.setGoogleId(googleId);
@@ -116,7 +125,6 @@ public class AuthenticationService {
                         return userRepository.save(existingUser);
                     }
 
-                    // Create new user from Google
                     User newUser = new User();
                     newUser.setEmail(email);
                     newUser.setFirstName(firstName);
@@ -126,7 +134,17 @@ public class AuthenticationService {
                     newUser.setUserType(userType);
                     newUser.setAccountStatus(AccountStatus.ACTIVE);
                     newUser.setLastLogin(LocalDateTime.now());
-                    return userRepository.save(newUser);
+
+                    User savedUser = userRepository.save(newUser);
+
+                    if (userType == UserType.HELPER) {
+                        Helper helper = new Helper();
+                        helper.setUser(savedUser);
+                        helper.setIsAvailable(false);
+                        helperRepository.save(helper);
+                    }
+
+                    return savedUser;
                 });
     }
 }

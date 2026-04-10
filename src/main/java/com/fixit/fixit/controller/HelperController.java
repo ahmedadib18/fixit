@@ -24,13 +24,16 @@ public class HelperController {
     @Autowired
     private FileStorageService fileStorageService;
 
-    @GetMapping("/{helperId}/profile")
-    public ResponseEntity<?> getHelperProfile(@PathVariable Long helperId) {
+    // Get helper profile by USER ID (not helper ID)
+    @GetMapping("/by-user/{userId}")
+    public ResponseEntity<?> getHelperByUserId(@PathVariable Long userId) {
         try {
-            Helper helper = helperService.getHelperWithUser(helperId);
+            Helper helper = helperService.findByUserId(userId);
             return ResponseEntity.ok(helper);
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage(), HttpStatus.BAD_REQUEST.value()));
+            return ResponseEntity.badRequest()
+                    .body(new ErrorResponse(e.getMessage(),
+                            HttpStatus.BAD_REQUEST.value()));
         }
     }
 

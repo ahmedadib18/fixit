@@ -12,6 +12,7 @@ public class CreateSessionRequest {
     @NotNull(message = "User ID is required")
     private Long userId;
 
+
     // =====================
     // Getters and Setters
     // =====================

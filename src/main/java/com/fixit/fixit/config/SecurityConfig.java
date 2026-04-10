@@ -12,6 +12,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -22,12 +27,42 @@ public class SecurityConfig {
 
     // =============================================
     // PASSWORD ENCODER BEAN
-    // Fixes PasswordEncoder error in
-    // AuthenticationService
     // =============================================
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    // =============================================
+    // CORS CONFIGURATION
+    // Allows React (port 5173) to call Spring Boot (port 8080)
+    // =============================================
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+
+        // Allow React frontend
+        configuration.setAllowedOrigins(List.of(
+                "http://localhost:5173",
+                "http://localhost:3000"
+        ));
+
+        // Allow all HTTP methods
+        configuration.setAllowedMethods(List.of(
+                "GET", "POST", "PUT", "DELETE",
+                "PATCH", "OPTIONS"
+        ));
+
+        // Allow all headers
+        configuration.setAllowedHeaders(List.of("*"));
+
+        // Allow credentials (JWT tokens)
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source =
+                new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 
     // =============================================
@@ -38,37 +73,32 @@ public class SecurityConfig {
             HttpSecurity http) throws Exception {
 
         http
+                // Enable CORS
+                .cors(cors -> cors
+                        .configurationSource(corsConfigurationSource()))
+
                 // Disable CSRF for REST API
                 .csrf(AbstractHttpConfigurer::disable)
 
-                // Set session management to stateless
+                // Stateless sessions
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(
                                 SessionCreationPolicy.STATELESS))
 
-                // Configure endpoint access rules
+                // Endpoint access rules
                 .authorizeHttpRequests(auth -> auth
-
-                        // Public endpoints — no token needed
                         .requestMatchers(
                                 "/api/auth/**",
                                 "/h2-console/**",
                                 "/ws/**",
                                 "/error"
                         ).permitAll()
-
-                        // Admin only endpoints
-                        .requestMatchers(
-                                "/api/admin/**"
-                        ).hasRole("ADMIN")
-
-                        // Helper only endpoints
+                        .requestMatchers("/api/admin/**")
+                        .hasRole("ADMIN")
                         .requestMatchers(
                                 "/api/helpers/profile/**",
                                 "/api/earnings/**"
                         ).hasAnyRole("HELPER", "ADMIN")
-
-                        // All other endpoints need authentication
                         .anyRequest().authenticated()
                 )
 
@@ -76,7 +106,7 @@ public class SecurityConfig {
                 .headers(headers -> headers
                         .frameOptions(frame -> frame.sameOrigin()))
 
-                // Add JWT filter before authentication filter
+                // JWT filter
                 .addFilterBefore(
                         jwtAuthFilter,
                         UsernamePasswordAuthenticationFilter.class);
