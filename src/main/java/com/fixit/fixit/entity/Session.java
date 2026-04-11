@@ -1,5 +1,6 @@
 package com.fixit.fixit.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fixit.fixit.enums.SessionStatus;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
@@ -15,14 +16,17 @@ public class Session {
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnoreProperties({"password", "passwordHash", "sessions", "helper"})
     private User user;
 
     @ManyToOne
     @JoinColumn(name = "helper_id", nullable = false)
+    @JsonIgnoreProperties({"user", "categories", "sessions"})
     private Helper helper;
 
     @ManyToOne
     @JoinColumn(name = "category_id")
+    @JsonIgnoreProperties({"helpers"})
     private Category category;
 
     @Enumerated(EnumType.STRING)

@@ -70,10 +70,39 @@ export const AuthProvider = ({ children }) => {
   }
 
   const logout = () => {
+    // Clean up WebRTC and media resources
+    cleanupMediaResources()
+    
     setToken(null)
     setUser(null)
     localStorage.removeItem('token')
     localStorage.removeItem('user')
+  }
+
+  const cleanupMediaResources = () => {
+    // Stop all media streams (camera/microphone)
+    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+      .then(stream => {
+        stream.getTracks().forEach(track => {
+          track.stop()
+          console.log('Stopped media track:', track.kind)
+        })
+      })
+      .catch(() => {
+        // Ignore errors if no stream exists
+      })
+
+    // Get all video elements and clear their sources
+    const videoElements = document.querySelectorAll('video')
+    videoElements.forEach(video => {
+      if (video.srcObject) {
+        const stream = video.srcObject
+        stream.getTracks().forEach(track => track.stop())
+        video.srcObject = null
+      }
+    })
+
+    console.log('Media resources cleaned up on logout')
   }
 
   const value = {

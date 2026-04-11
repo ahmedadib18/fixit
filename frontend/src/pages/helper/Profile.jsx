@@ -15,6 +15,7 @@ const HelperProfile = () => {
     languagesSpoken: ''
   })
   const [specializationForm, setSpecializationForm] = useState({
+    id: null,
     categoryId: '',
     hourlyRate: '',
     yearsExperience: ''
@@ -29,9 +30,6 @@ const HelperProfile = () => {
 
   const loadCategories = async () => {
     try {
-      const response = await authService.getCountries() // Reusing this endpoint structure
-      // We need to create a categories endpoint, but for now let's use a workaround
-      // For now, we'll fetch from the backend
       const categoriesData = [
         { id: 1, name: 'Computer & IT Support' },
         { id: 2, name: 'Home Appliance Repair' },
@@ -52,9 +50,7 @@ const HelperProfile = () => {
 
   const loadHelper = async () => {
     try {
-      console.log('Loading helper profile for user ID:', user.id)
       const data = await helperService.getHelperByUserId(user.id)
-      console.log('Helper data received:', data)
       setHelper(data)
       setFormData({
         professionalHeadline: data.professionalHeadline || '',
@@ -62,7 +58,6 @@ const HelperProfile = () => {
       })
     } catch (err) {
       console.error('Failed to load helper profile:', err)
-      console.error('Error details:', err.response?.data)
     } finally {
       setLoading(false)
     }
@@ -89,7 +84,27 @@ const HelperProfile = () => {
     }
   }
 
-  const handleAddSpecialization = async (e) => {
+  const handleEditSpecialization = (spec) => {
+    setSpecializationForm({
+      id: spec.id,
+      categoryId: spec.categoryId,
+      hourlyRate: spec.hourlyRate,
+      yearsExperience: spec.yearsExperience
+    })
+    setEditingSpecializations(true)
+  }
+
+  const handleAddNewSpecialization = () => {
+    setSpecializationForm({
+      id: null,
+      categoryId: '',
+      hourlyRate: '',
+      yearsExperience: ''
+    })
+    setEditingSpecializations(true)
+  }
+
+  const handleSaveSpecialization = async (e) => {
     e.preventDefault()
     setMessage('')
     try {
@@ -99,12 +114,30 @@ const HelperProfile = () => {
         yearsExperiences: [parseInt(specializationForm.yearsExperience)]
       }
       await helperService.updateProfile(helper.id, payload)
-      setMessage('Specialization added successfully')
+      setMessage(specializationForm.id ? 'Specialization updated successfully' : 'Specialization added successfully')
       setEditingSpecializations(false)
-      setSpecializationForm({ categoryId: '', hourlyRate: '', yearsExperience: '' })
+      setSpecializationForm({ id: null, categoryId: '', hourlyRate: '', yearsExperience: '' })
       loadHelper()
     } catch (err) {
-      setMessage(err.response?.data?.message || 'Failed to add specialization')
+      setMessage(err.response?.data?.message || 'Failed to save specialization')
+    }
+  }
+
+  const handleRemoveSpecialization = async (helperCategoryId) => {
+    console.log('Attempting to remove specialization with ID:', helperCategoryId)
+    if (!window.confirm('Are you sure you want to remove this specialization?')) return
+    
+    setMessage('')
+    try {
+      console.log('Calling deleteSpecialization API...')
+      await helperService.deleteSpecialization(helperCategoryId)
+      setMessage('Specialization removed successfully')
+      console.log('Specialization removed, reloading helper data...')
+      await loadHelper()
+    } catch (err) {
+      console.error('Remove specialization error:', err)
+      console.error('Error response:', err.response?.data)
+      setMessage(err.response?.data?.message || 'Failed to remove specialization')
     }
   }
 
@@ -163,10 +196,28 @@ const HelperProfile = () => {
           {helper.specializations && helper.specializations.length > 0 ? (
             <div>
               {helper.specializations.map(spec => (
-                <div key={spec.id} style={{ padding: '10px', borderBottom: '1px solid #eee' }}>
-                  <p><strong>{spec.categoryName}</strong></p>
-                  <p>Hourly Rate: ${spec.hourlyRate}/hr</p>
-                  <p>Experience: {spec.yearsExperience} years</p>
+                <div key={spec.id} style={{ padding: '10px', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <p><strong>{spec.categoryName}</strong></p>
+                    <p>Hourly Rate: ${spec.hourlyRate}/hr</p>
+                    <p>Experience: {spec.yearsExperience} years</p>
+                  </div>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <button 
+                      onClick={() => handleEditSpecialization(spec)} 
+                      className="btn btn-secondary"
+                      style={{ padding: '5px 15px' }}
+                    >
+                      Edit
+                    </button>
+                    <button 
+                      onClick={() => handleRemoveSpecialization(spec.id)} 
+                      className="btn btn-danger"
+                      style={{ padding: '5px 15px' }}
+                    >
+                      Remove
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -176,14 +227,14 @@ const HelperProfile = () => {
           
           {!editingSpecializations ? (
             <button 
-              onClick={() => setEditingSpecializations(true)} 
+              onClick={handleAddNewSpecialization} 
               className="btn btn-primary" 
               style={{ marginTop: '20px' }}
             >
               Add Specialization
             </button>
           ) : (
-            <form onSubmit={handleAddSpecialization} style={{ marginTop: '20px' }}>
+            <form onSubmit={handleSaveSpecialization} style={{ marginTop: '20px' }}>
               <div className="form-group">
                 <label>Service Category</label>
                 <select
@@ -225,10 +276,15 @@ const HelperProfile = () => {
               </div>
               {message && <div className={message.includes('success') ? 'success' : 'error'}>{message}</div>}
               <div style={{ display: 'flex', gap: '10px' }}>
-                <button type="submit" className="btn btn-primary">Add Specialization</button>
+                <button type="submit" className="btn btn-primary">
+                  {specializationForm.id ? 'Update Specialization' : 'Add Specialization'}
+                </button>
                 <button 
                   type="button" 
-                  onClick={() => setEditingSpecializations(false)} 
+                  onClick={() => {
+                    setEditingSpecializations(false)
+                    setSpecializationForm({ id: null, categoryId: '', hourlyRate: '', yearsExperience: '' })
+                  }} 
                   className="btn btn-secondary"
                 >
                   Cancel

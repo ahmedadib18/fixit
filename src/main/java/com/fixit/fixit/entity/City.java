@@ -1,5 +1,6 @@
 package com.fixit.fixit.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import java.util.List;
 
@@ -17,6 +18,7 @@ public class City {
 
     @ManyToOne
     @JoinColumn(name = "country_id", nullable = false)
+    @JsonIgnoreProperties({"cities"})
     private Country country;
 
     @Column(name = "state_name", length = 100)

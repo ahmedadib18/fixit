@@ -1,5 +1,7 @@
 package com.fixit.fixit.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fixit.fixit.enums.TransactionStatus;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
@@ -15,10 +17,12 @@ public class Transaction {
 
     @ManyToOne
     @JoinColumn(name = "session_id", nullable = false)
+    @JsonIgnoreProperties({"user", "helper", "category", "chatMessages"})
     private Session session;
 
     @ManyToOne
     @JoinColumn(name = "payment_method_id")
+    @JsonIgnoreProperties({"user"})
     private PaymentMethod paymentMethod;
 
     @Column(name = "stripe_payment_intent_id", length = 255)
@@ -86,4 +90,10 @@ public class Transaction {
 
     public String getRefundReason() { return refundReason; }
     public void setRefundReason(String refundReason) { this.refundReason = refundReason; }
+
+    // Helper method to get sessionId for JSON serialization
+    @JsonProperty("sessionId")
+    public String getSessionId() {
+        return session != null ? session.getId() : null;
+    }
 }

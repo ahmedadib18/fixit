@@ -183,4 +183,14 @@ public class HelperService {
         return helperRepository.findByIdWithUser(helperId)
                 .orElseThrow(() -> new ResourceNotFoundException("Helper", "id", helperId));
     }
+
+    // =============================================
+    // DELETE HELPER CATEGORY
+    // =============================================
+    @Transactional
+    public void deleteHelperCategory(Long helperCategoryId) {
+        HelperCategory helperCategory = helperCategoryRepository.findById(helperCategoryId)
+                .orElseThrow(() -> new ResourceNotFoundException("HelperCategory", "id", helperCategoryId));
+        helperCategoryRepository.delete(helperCategory);
+    }
 }

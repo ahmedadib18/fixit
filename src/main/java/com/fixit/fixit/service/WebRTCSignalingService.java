@@ -93,6 +93,35 @@ public class WebRTCSignalingService {
     }
 
     // =============================================
+    // BROADCAST CHAT MESSAGE
+    // =============================================
+    public void broadcastChatMessage(String sessionId, Map<String, Object> payload) {
+        String destination = "/topic/session/" + sessionId;
+        messagingTemplate.convertAndSend(destination, (Object) payload);
+    }
+
+    // =============================================
+    // BROADCAST SESSION END
+    // =============================================
+    public void broadcastSessionEnd(String sessionId, Map<String, Object> payload) {
+        String destination = "/topic/session/" + sessionId;
+        messagingTemplate.convertAndSend(destination, (Object) payload);
+    }
+
+    // =============================================
+    // BROADCAST SESSION STATUS UPDATE
+    // =============================================
+    public void broadcastSessionStatusUpdate(String sessionId, String status) {
+        Map<String, Object> payload = Map.of(
+            "type", "SESSION_STATUS_UPDATE",
+            "sessionId", sessionId,
+            "status", status
+        );
+        String destination = "/topic/session/" + sessionId;
+        messagingTemplate.convertAndSend(destination, (Object) payload);
+    }
+
+    // =============================================
     // INNER CLASS: SIGNALING MESSAGE
     // =============================================
     public static class SignalingMessage {

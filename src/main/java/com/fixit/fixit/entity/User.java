@@ -1,6 +1,7 @@
 package com.fixit.fixit.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fixit.fixit.enums.AccountStatus;
 import com.fixit.fixit.enums.UserType;
 import jakarta.persistence.*;
@@ -32,6 +33,7 @@ public class User {
 
     @ManyToOne
     @JoinColumn(name = "city_id")
+    @JsonIgnoreProperties({"country"})
     private City city;
 
     @Enumerated(EnumType.STRING)

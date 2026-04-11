@@ -31,13 +31,17 @@ const HelperDetails = () => {
   const handleStartSession = async () => {
     setCreating(true)
     try {
-      const session = await sessionService.createSession({
+      const sessionData = {
         userId: user.id,
         helperId: parseInt(helperId),
         categoryId: helperData.helper.helperCategories?.[0]?.categoryId || null
-      })
+      }
+      console.log('Creating session with data:', sessionData)
+      const session = await sessionService.createSession(sessionData)
+      console.log('Session created:', session)
       navigate(`/session/${session.id}`)
     } catch (err) {
+      console.error('Session creation error:', err)
       alert(err.response?.data?.message || 'Failed to create session')
     } finally {
       setCreating(false)

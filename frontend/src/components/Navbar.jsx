@@ -35,6 +35,7 @@ const Navbar = () => {
               {user.userType === 'HELPER' && (
                 <>
                   <Link to="/helper/profile" className="navbar-link">My Profile</Link>
+                  <Link to="/helper/sessions" className="navbar-link">My Sessions</Link>
                   <Link to="/helper/earnings" className="navbar-link">Earnings</Link>
                 </>
               )}

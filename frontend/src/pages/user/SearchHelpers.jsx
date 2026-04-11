@@ -10,7 +10,7 @@ const SearchHelpers = () => {
     minRating: '',
     maxPrice: '',
     language: '',
-    availableNow: false,
+    availableNow: true,
     cityId: ''
   })
   const [loading, setLoading] = useState(false)
@@ -95,7 +95,7 @@ const SearchHelpers = () => {
                     onChange={handleFilterChange}
                     style={{ width: 'auto' }}
                   />
-                  Available Now
+                  Available Now Only
                 </label>
               </div>
             </div>

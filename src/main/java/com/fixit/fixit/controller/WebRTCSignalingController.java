@@ -84,4 +84,26 @@ public class WebRTCSignalingController {
         
         signalingService.notifyUserLeft(sessionId, userId);
     }
+
+    // =============================================
+    // HANDLE CHAT MESSAGE
+    // =============================================
+    @MessageMapping("/session/{sessionId}/chat")
+    public void handleChatMessage(
+            @DestinationVariable String sessionId,
+            @Payload Map<String, Object> payload) {
+        
+        signalingService.broadcastChatMessage(sessionId, payload);
+    }
+
+    // =============================================
+    // HANDLE SESSION END
+    // =============================================
+    @MessageMapping("/session/{sessionId}/end")
+    public void handleSessionEnd(
+            @DestinationVariable String sessionId,
+            @Payload Map<String, Object> payload) {
+        
+        signalingService.broadcastSessionEnd(sessionId, payload);
+    }
 }

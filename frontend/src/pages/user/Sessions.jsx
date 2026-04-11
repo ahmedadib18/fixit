@@ -24,6 +24,21 @@ const UserSessions = () => {
     }
   }
 
+  const formatDuration = (startedAt, endedAt) => {
+    if (!startedAt || !endedAt) return 'N/A'
+    const start = new Date(startedAt)
+    const end = new Date(endedAt)
+    const diffMs = end - start
+    const minutes = Math.floor(diffMs / 60000)
+    const seconds = Math.floor((diffMs % 60000) / 1000)
+    
+    if (minutes > 0) {
+      return `${minutes} min ${seconds} sec`
+    } else {
+      return `${seconds} sec`
+    }
+  }
+
   return (
     <>
       <Navbar />
@@ -42,6 +57,7 @@ const UserSessions = () => {
                   <th style={{ padding: '10px', textAlign: 'left' }}>Status</th>
                   <th style={{ padding: '10px', textAlign: 'left' }}>Started</th>
                   <th style={{ padding: '10px', textAlign: 'left' }}>Ended</th>
+                  <th style={{ padding: '10px', textAlign: 'left' }}>Duration</th>
                   <th style={{ padding: '10px', textAlign: 'left' }}>Actions</th>
                 </tr>
               </thead>
@@ -55,6 +71,9 @@ const UserSessions = () => {
                     </td>
                     <td style={{ padding: '10px' }}>
                       {session.endedAt ? new Date(session.endedAt).toLocaleString() : '-'}
+                    </td>
+                    <td style={{ padding: '10px' }}>
+                      {formatDuration(session.startedAt, session.endedAt)}
                     </td>
                     <td style={{ padding: '10px' }}>
                       <Link to={`/session/${session.id}`} className="btn btn-primary" style={{ padding: '5px 10px' }}>

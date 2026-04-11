@@ -34,12 +34,18 @@ const HelperDashboard = () => {
   const loadSessions = async () => {
     try {
       const data = await helperService.getHelperByUserId(user.id)
+      console.log('Helper data:', data)
       if (data?.id) {
+        console.log('Fetching sessions for helper ID:', data.id)
         const sessionsData = await helperService.getHelperSessions(data.id)
-        setSessions(sessionsData)
+        console.log('Sessions data:', sessionsData)
+        console.log('Sessions array length:', sessionsData?.length)
+        console.log('Sessions array:', JSON.stringify(sessionsData, null, 2))
+        setSessions(sessionsData || [])
       }
     } catch (err) {
       console.error('Failed to load sessions', err)
+      console.error('Error response:', err.response?.data)
     }
   }
 
@@ -154,6 +160,7 @@ const HelperDashboard = () => {
           <h2>Quick Actions</h2>
           <div style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
             <Link to="/helper/profile" className="btn btn-primary">Manage Profile</Link>
+            <Link to="/helper/sessions" className="btn btn-secondary">View Sessions</Link>
             <Link to="/helper/earnings" className="btn btn-secondary">View Earnings</Link>
           </div>
         </div>

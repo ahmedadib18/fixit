@@ -197,6 +197,62 @@ public class BillingService {
     }
 
     // =============================================
+    // PROCESS SESSION PAYMENT (AUTO)
+    // =============================================
+    @Transactional
+    public Transaction processSessionPayment(String sessionId) {
+        // Get session
+        Session session = sessionService.findById(sessionId);
+
+        // Calculate duration in minutes
+        long durationMinutes = sessionService.getSessionDurationMinutes(sessionId);
+        
+        if (durationMinutes <= 0) {
+            System.out.println("Session duration is 0, skipping payment");
+            return null;
+        }
+
+        // Calculate gross amount based on helper rate and duration
+        BigDecimal helperRate = session.getHelperRate();
+        if (helperRate == null || helperRate.compareTo(BigDecimal.ZERO) <= 0) {
+            System.out.println("No helper rate set, skipping payment");
+            return null;
+        }
+
+        BigDecimal durationHours = BigDecimal.valueOf(durationMinutes)
+                .divide(BigDecimal.valueOf(60), 4, RoundingMode.HALF_UP);
+        BigDecimal grossAmount = helperRate
+                .multiply(durationHours)
+                .setScale(2, RoundingMode.HALF_UP);
+
+        // Calculate platform fee (10%)
+        BigDecimal platformFee = grossAmount
+                .multiply(PLATFORM_FEE_RATE)
+                .setScale(2, RoundingMode.HALF_UP);
+
+        // Create transaction without payment method (will be processed later)
+        Transaction transaction = new Transaction();
+        transaction.setSession(session);
+        transaction.setPaymentMethod(null); // No payment method for now
+        transaction.setAmount(grossAmount);
+        transaction.setPlatformFee(platformFee);
+        transaction.setCurrency("USD");
+        transaction.setStatus(TransactionStatus.SUCCEEDED); // Auto-succeed for now
+        transaction.setProcessedAt(LocalDateTime.now());
+
+        Transaction savedTransaction = transactionRepository.save(transaction);
+
+        // Generate receipt
+        try {
+            generateReceipt(savedTransaction, session);
+        } catch (Exception e) {
+            System.err.println("Failed to generate receipt: " + e.getMessage());
+        }
+
+        return savedTransaction;
+    }
+
+    // =============================================
     // GENERATE RECEIPT PDF
     // =============================================
     public byte[] generateReceiptPdf(Long transactionId) {

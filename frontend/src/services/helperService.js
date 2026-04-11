@@ -28,5 +28,10 @@ export const helperService = {
   getHelperSessions: async (helperId) => {
     const response = await api.get(`/helpers/${helperId}/sessions`)
     return response.data
+  },
+
+  deleteSpecialization: async (helperCategoryId) => {
+    const response = await api.delete(`/helpers/categories/${helperCategoryId}`)
+    return response.data
   }
 }

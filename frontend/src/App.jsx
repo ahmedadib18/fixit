@@ -19,6 +19,7 @@ import SubmitTicket from './pages/user/SubmitTicket'
 import HelperDashboard from './pages/helper/Dashboard'
 import HelperProfile from './pages/helper/Profile'
 import HelperEarnings from './pages/helper/Earnings'
+import HelperSessions from './pages/helper/Sessions'
 
 // Session Pages
 import VideoSession from './pages/session/VideoSession'
@@ -51,6 +52,7 @@ function App() {
           <Route path="/helper/dashboard" element={<PrivateRoute role="HELPER"><HelperDashboard /></PrivateRoute>} />
           <Route path="/helper/profile" element={<PrivateRoute role="HELPER"><HelperProfile /></PrivateRoute>} />
           <Route path="/helper/earnings" element={<PrivateRoute role="HELPER"><HelperEarnings /></PrivateRoute>} />
+          <Route path="/helper/sessions" element={<PrivateRoute role="HELPER"><HelperSessions /></PrivateRoute>} />
 
           {/* Session Routes */}
           <Route path="/session/:sessionId" element={<PrivateRoute><VideoSession /></PrivateRoute>} />

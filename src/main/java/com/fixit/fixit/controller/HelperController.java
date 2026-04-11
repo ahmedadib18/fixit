@@ -108,7 +108,27 @@ public class HelperController {
         }
     }
 
+    @DeleteMapping("/categories/{helperCategoryId}")
+    public ResponseEntity<?> deleteSpecialization(@PathVariable Long helperCategoryId) {
+        try {
+            helperService.deleteHelperCategory(helperCategoryId);
+            return ResponseEntity.ok().body(new SuccessResponse("Specialization removed successfully"));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage(), HttpStatus.BAD_REQUEST.value()));
+        }
+    }
+
     // Inner classes for requests and responses
+    private static class SuccessResponse {
+        private String message;
+
+        public SuccessResponse(String message) {
+            this.message = message;
+        }
+
+        public String getMessage() { return message; }
+        public void setMessage(String message) { this.message = message; }
+    }
     private static class CertificateUploadRequest {
         private String certificateUrl;
 

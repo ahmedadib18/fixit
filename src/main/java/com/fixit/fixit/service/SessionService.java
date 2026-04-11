@@ -15,6 +15,7 @@ import com.fixit.fixit.repository.SessionChatMessageRepository;
 import com.fixit.fixit.repository.SessionRepository;
 import com.fixit.fixit.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
@@ -38,6 +39,13 @@ public class SessionService {
 
     @Autowired
     private CategoryRepository categoryRepository;
+
+    @Autowired
+    @Lazy
+    private com.fixit.fixit.service.BillingService billingService;
+
+    @Autowired
+    private WebRTCSignalingService webRTCSignalingService;
 
     // =============================================
     // INITIATE SESSION
@@ -81,6 +89,10 @@ public class SessionService {
         session.setCategory(category);
         session.setStatus(SessionStatus.INITIATED);
 
+        System.out.println("=== Creating session: " + sessionId);
+        System.out.println("=== Helper ID: " + helper.getId());
+        System.out.println("=== User ID: " + user.getId());
+
         // Set helper rate from their category
         if (category != null && helper.getCategories() != null) {
             helper.getCategories().stream()
@@ -100,12 +112,21 @@ public class SessionService {
         Session session = findById(sessionId);
 
         if (session.getStatus() != SessionStatus.INITIATED) {
+            // If already connected, just return the session
+            if (session.getStatus() == SessionStatus.CONNECTED) {
+                return session;
+            }
             throw new SessionException("Session cannot be accepted. Current status: " + session.getStatus());
         }
 
         session.setStatus(SessionStatus.CONNECTED);
         session.setStartedAt(LocalDateTime.now());
-        return sessionRepository.save(session);
+        Session savedSession = sessionRepository.save(session);
+        
+        // Broadcast status update to all participants
+        webRTCSignalingService.broadcastSessionStatusUpdate(sessionId, "CONNECTED");
+        
+        return savedSession;
     }
 
     // =============================================
@@ -144,7 +165,17 @@ public class SessionService {
 
         session.setStatus(SessionStatus.ENDED);
         session.setEndedAt(LocalDateTime.now());
-        return sessionRepository.save(session);
+        Session savedSession = sessionRepository.save(session);
+
+        // Create transaction for billing
+        try {
+            billingService.processSessionPayment(sessionId);
+        } catch (Exception e) {
+            System.err.println("Failed to process payment for session " + sessionId + ": " + e.getMessage());
+            // Don't fail the session end if payment processing fails
+        }
+
+        return savedSession;
     }
 
     // =============================================
@@ -219,8 +250,14 @@ public class SessionService {
     // GET HELPER SESSIONS
     // =============================================
     public List<Session> getHelperSessions(Long helperId) {
-        return sessionRepository
+        System.out.println("=== Getting sessions for helper ID: " + helperId);
+        List<Session> sessions = sessionRepository
                 .findByHelperIdOrderByCreatedAtDesc(helperId);
+        System.out.println("=== Found " + sessions.size() + " sessions");
+        for (Session s : sessions) {
+            System.out.println("=== Session: " + s.getId() + ", Helper ID: " + (s.getHelper() != null ? s.getHelper().getId() : "null"));
+        }
+        return sessions;
     }
 
     // =============================================

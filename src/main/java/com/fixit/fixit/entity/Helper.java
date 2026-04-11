@@ -1,5 +1,6 @@
 package com.fixit.fixit.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import com.fixit.fixit.entity.HelperCategory;
@@ -15,6 +16,7 @@ public class Helper {
 
     @OneToOne
     @JoinColumn(name = "user_id", nullable = false, unique = true)
+    @JsonIgnoreProperties({"passwordHash", "helper"})
     private User user;
 
     @Column(name = "professional_headline", length = 255)
@@ -33,6 +35,7 @@ public class Helper {
     private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "helper")
+    @JsonIgnoreProperties({"helper"})
     private List<HelperCategory> categories;
 
     @PrePersist
