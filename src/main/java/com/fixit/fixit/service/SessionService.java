@@ -16,10 +16,13 @@ import com.fixit.fixit.repository.SessionRepository;
 import com.fixit.fixit.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -46,6 +49,9 @@ public class SessionService {
 
     @Autowired
     private WebRTCSignalingService webRTCSignalingService;
+    
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
 
     // =============================================
     // INITIATE SESSION
@@ -89,9 +95,7 @@ public class SessionService {
         session.setCategory(category);
         session.setStatus(SessionStatus.INITIATED);
 
-        System.out.println("=== Creating session: " + sessionId);
-        System.out.println("=== Helper ID: " + helper.getId());
-        System.out.println("=== User ID: " + user.getId());
+
 
         // Set helper rate from their category
         if (category != null && helper.getCategories() != null) {
@@ -99,9 +103,40 @@ public class SessionService {
                     .filter(hc -> hc.getCategory() != null && hc.getCategory().getId().equals(categoryId))
                     .findFirst()
                     .ifPresent(hc -> session.setHelperRate(hc.getHourlyRate()));
+            
+            // Validate that helper has a rate for this category
+            if (session.getHelperRate() == null) {
+                throw new SessionException("Helper does not have a rate set for category: " + category.getName());
+            }
         }
 
-        return sessionRepository.save(session);
+        Session savedSession = sessionRepository.save(session);
+        
+        // Notify helper of new session request via WebSocket
+        try {
+            String userName = user.getFirstName() + " " + user.getLastName();
+            String categoryName = category != null ? category.getName() : "General";
+            
+            Map<String, Object> notification = new HashMap<>();
+            notification.put("type", "NEW_SESSION_REQUEST");
+            notification.put("sessionId", sessionId);
+            notification.put("userName", userName);
+            notification.put("categoryName", categoryName);
+            notification.put("userId", userId);
+            notification.put("helperId", helperId);
+            
+            // Send to helper-specific topic
+            String destination = "/topic/helper/" + helperId + "/notifications";
+            messagingTemplate.convertAndSend(destination, (Object) notification);
+            
+            System.out.println("✅ Sent notification to helper " + helperId + " for session " + sessionId);
+        } catch (Exception e) {
+            System.err.println("❌ Failed to send notification to helper: " + e.getMessage());
+            e.printStackTrace();
+            // Don't fail session creation if notification fails
+        }
+        
+        return savedSession;
     }
 
     // =============================================
@@ -112,10 +147,6 @@ public class SessionService {
         Session session = findById(sessionId);
 
         if (session.getStatus() != SessionStatus.INITIATED) {
-            // If already connected, just return the session
-            if (session.getStatus() == SessionStatus.CONNECTED) {
-                return session;
-            }
             throw new SessionException("Session cannot be accepted. Current status: " + session.getStatus());
         }
 
@@ -125,6 +156,23 @@ public class SessionService {
         
         // Broadcast status update to all participants
         webRTCSignalingService.broadcastSessionStatusUpdate(sessionId, "CONNECTED");
+        
+        // Notify user that session was accepted
+        try {
+            Map<String, Object> notification = new HashMap<>();
+            notification.put("type", "SESSION_STATUS_UPDATE");
+            notification.put("sessionId", sessionId);
+            notification.put("status", "CONNECTED");
+            
+            messagingTemplate.convertAndSend(
+                "/topic/user/" + session.getUser().getId() + "/session-updates",
+                (Object) notification
+            );
+            
+            System.out.println("✅ Sent session status update to user " + session.getUser().getId());
+        } catch (Exception e) {
+            System.err.println("❌ Failed to send session status update: " + e.getMessage());
+        }
         
         return savedSession;
     }
@@ -158,9 +206,9 @@ public class SessionService {
             throw new SessionException("Session cannot be ended. Current status: " + session.getStatus());
         }
 
-        // Set started time if not already set
+        // Validate session was actually started
         if (session.getStartedAt() == null) {
-            session.setStartedAt(LocalDateTime.now());
+            throw new SessionException("Cannot end session that was never started. Session ID: " + sessionId);
         }
 
         session.setStatus(SessionStatus.ENDED);
@@ -250,14 +298,8 @@ public class SessionService {
     // GET HELPER SESSIONS
     // =============================================
     public List<Session> getHelperSessions(Long helperId) {
-        System.out.println("=== Getting sessions for helper ID: " + helperId);
-        List<Session> sessions = sessionRepository
+        return sessionRepository
                 .findByHelperIdOrderByCreatedAtDesc(helperId);
-        System.out.println("=== Found " + sessions.size() + " sessions");
-        for (Session s : sessions) {
-            System.out.println("=== Session: " + s.getId() + ", Helper ID: " + (s.getHelper() != null ? s.getHelper().getId() : "null"));
-        }
-        return sessions;
     }
 
     // =============================================

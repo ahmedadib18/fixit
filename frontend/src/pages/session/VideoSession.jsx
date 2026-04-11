@@ -17,30 +17,35 @@ const VideoSession = () => {
   const localVideoRef = useRef(null)
   const remoteVideoRef = useRef(null)
   const stompClientRef = useRef(null)
+  const subscriptionRef = useRef(null)
   const peerConnectionRef = useRef(null)
   const localStreamRef = useRef(null)
 
   useEffect(() => {
     let mounted = true
+    const currentSessionId = sessionId // Capture sessionId for cleanup
     
     const initialize = async () => {
       if (!mounted) return
       
       // Clean up any existing connections first
-      cleanupConnections()
+      cleanupConnections(currentSessionId)
       
       const sessionData = await loadSession()
       
       // Only initialize media and WebSocket for active sessions
       if (sessionData && (sessionData.status === 'INITIATED' || sessionData.status === 'CONNECTED' || sessionData.status === 'IN_PROGRESS')) {
-        await initializeMedia()
+        const mediaInitialized = await initializeMedia()
         
-        // Small delay to ensure media is ready before connecting WebSocket
-        setTimeout(() => {
-          if (mounted) {
-            connectWebSocket()
-          }
-        }, 1000)
+        // Only connect WebSocket if media was successfully initialized
+        if (mediaInitialized && mounted) {
+          // Small delay to ensure media is ready before connecting WebSocket
+          setTimeout(() => {
+            if (mounted) {
+              connectWebSocket()
+            }
+          }, 1000)
+        }
       }
     }
     
@@ -48,26 +53,37 @@ const VideoSession = () => {
     
     // Handle page unload/refresh
     const handleBeforeUnload = () => {
-      cleanupConnections()
+      cleanupConnections(currentSessionId)
     }
     
     window.addEventListener('beforeunload', handleBeforeUnload)
     
     return () => {
       mounted = false
-      cleanupConnections()
+      cleanupConnections(currentSessionId)
       window.removeEventListener('beforeunload', handleBeforeUnload)
     }
   }, [sessionId])
 
-  const cleanupConnections = () => {
-    console.log('Cleaning up connections...')
+  const cleanupConnections = (currentSessionId) => {
+    console.log('Cleaning up connections for session:', currentSessionId)
+    
+    // Unsubscribe from WebSocket topic
+    if (subscriptionRef.current) {
+      try {
+        console.log('Unsubscribing from WebSocket topic')
+        subscriptionRef.current.unsubscribe()
+        subscriptionRef.current = null
+      } catch (err) {
+        console.error('Error unsubscribing:', err)
+      }
+    }
     
     // Notify that user is leaving
-    if (stompClientRef.current && stompClientRef.current.connected) {
+    if (stompClientRef.current && stompClientRef.current.connected && currentSessionId) {
       try {
         stompClientRef.current.publish({
-          destination: `/app/session/${sessionId}/leave`,
+          destination: `/app/session/${currentSessionId}/leave`,
           body: JSON.stringify({
             userId: user.id
           })
@@ -102,7 +118,7 @@ const VideoSession = () => {
       try {
         localStreamRef.current.getTracks().forEach(track => {
           track.stop()
-          console.log('Stopped track:', track.kind)
+          console.log('Stopped track:', track.kind, track.id)
         })
         localStreamRef.current = null
       } catch (err) {
@@ -113,9 +129,11 @@ const VideoSession = () => {
     // Clear video elements
     if (localVideoRef.current) {
       localVideoRef.current.srcObject = null
+      localVideoRef.current.load()
     }
     if (remoteVideoRef.current) {
       remoteVideoRef.current.srcObject = null
+      remoteVideoRef.current.load()
     }
     
     console.log('Cleanup complete')
@@ -127,10 +145,10 @@ const VideoSession = () => {
       webSocketFactory: () => socket,
       reconnectDelay: 5000,
       onConnect: () => {
-        console.log('WebSocket connected for user:', user.id)
+        console.log('WebSocket connected for user:', user.id, 'userType:', user.userType)
         
-        // Subscribe to session updates
-        client.subscribe(`/topic/session/${sessionId}`, (message) => {
+        // Subscribe to session updates and store subscription reference
+        subscriptionRef.current = client.subscribe(`/topic/session/${sessionId}`, (message) => {
           const data = JSON.parse(message.body)
           console.log('Received WebSocket message:', data)
           
@@ -144,26 +162,64 @@ const VideoSession = () => {
             // Reload session data to get updated status
             loadSession()
           } else if (data.type === 'user-joined') {
-            console.log('User joined:', data.userName, 'My ID:', user.id, 'Their ID:', data.senderId)
-            // Initiate WebRTC connection as the caller (only if other user joined)
-            if (data.senderId !== user.id) {
-              console.log('Other user joined, creating offer...')
-              // Close existing connection if any
-              if (peerConnectionRef.current) {
-                peerConnectionRef.current.close()
-                peerConnectionRef.current = null
+            console.log('User joined:', data.userName, 'My ID:', user.id, 'Their ID:', data.senderId, 'My Type:', user.userType)
+            
+            // Ignore if it's my own join message
+            if (data.senderId === user.id) {
+              console.log('Ignoring my own join message')
+              return
+            }
+            
+            // Verify local media is ready before creating offer
+            if (!localStreamRef.current || localStreamRef.current.getTracks().length === 0) {
+              console.warn('Local media not ready when user joined, waiting...')
+              setTimeout(() => {
+                if (localStreamRef.current && localStreamRef.current.getTracks().length > 0) {
+                  console.log('Local media now ready, proceeding with connection')
+                  handleUserJoined()
+                } else {
+                  console.error('Local media still not ready after delay')
+                }
+              }, 2000)
+              return
+            }
+            
+            handleUserJoined()
+            
+            function handleUserJoined() {
+              // Only USER creates offer, HELPER waits for offer
+              if (user.userType === 'USER') {
+                console.log('I am USER, will create offer...')
+                // Close existing connection if any
+                if (peerConnectionRef.current) {
+                  console.log('Closing existing peer connection')
+                  peerConnectionRef.current.close()
+                  peerConnectionRef.current = null
+                }
+                // Wait a bit to ensure both sides are ready
+                setTimeout(() => {
+                  console.log('Creating offer now...')
+                  createOffer()
+                }, 2000)
+              } else {
+                console.log('I am HELPER, waiting for offer from USER...')
               }
-              setTimeout(() => createOffer(), 1000)
             }
           } else if (data.type === 'offer') {
-            console.log('Received offer from:', data.senderId)
-            handleOffer(data)
+            console.log('Received offer from:', data.senderId, 'My ID:', user.id)
+            if (data.senderId !== user.id) {
+              handleOffer(data)
+            }
           } else if (data.type === 'answer') {
-            console.log('Received answer from:', data.senderId)
-            handleAnswer(data)
+            console.log('Received answer from:', data.senderId, 'My ID:', user.id)
+            if (data.senderId !== user.id) {
+              handleAnswer(data)
+            }
           } else if (data.type === 'ice-candidate') {
             console.log('Received ICE candidate from:', data.senderId)
-            handleIceCandidate(data)
+            if (data.senderId !== user.id) {
+              handleIceCandidate(data)
+            }
           } else if (data.type === 'user-left') {
             console.log('User left:', data.senderId)
             // Close peer connection when other user leaves
@@ -179,12 +235,13 @@ const VideoSession = () => {
         })
         
         // Notify that user joined
-        console.log('Notifying that I joined:', user.id)
+        console.log('Notifying that I joined:', user.id, user.userType)
         client.publish({
           destination: `/app/session/${sessionId}/join`,
           body: JSON.stringify({
             userId: user.id,
-            userName: `${user.firstName} ${user.lastName}`
+            userName: `${user.firstName} ${user.lastName}`,
+            userType: user.userType
           })
         })
       },
@@ -229,6 +286,16 @@ const VideoSession = () => {
       console.log('Received remote track:', event.streams[0].id, 'tracks:', event.streams[0].getTracks().length)
       if (remoteVideoRef.current) {
         remoteVideoRef.current.srcObject = event.streams[0]
+        // Ensure remote video plays
+        remoteVideoRef.current.onloadedmetadata = () => {
+          remoteVideoRef.current.play().catch(err => {
+            console.warn('Remote video autoplay prevented:', err)
+            // Try again with user interaction
+            document.addEventListener('click', () => {
+              remoteVideoRef.current.play().catch(e => console.error('Remote play failed:', e))
+            }, { once: true })
+          })
+        }
       }
     }
 
@@ -264,25 +331,36 @@ const VideoSession = () => {
   const createOffer = async () => {
     try {
       console.log('=== Creating offer ===')
-      console.log('User ID:', user.id)
+      console.log('User ID:', user.id, 'Type:', user.userType)
       console.log('Session ID:', sessionId)
+      console.log('Local stream exists:', !!localStreamRef.current)
+      console.log('Local stream tracks:', localStreamRef.current?.getTracks().length)
       
       // Ensure we have local media before creating offer
-      if (!localStreamRef.current) {
+      if (!localStreamRef.current || localStreamRef.current.getTracks().length === 0) {
         console.error('No local stream available, reinitializing media...')
         await initializeMedia()
+        // Wait a bit after initializing
+        await new Promise(resolve => setTimeout(resolve, 500))
       }
       
+      console.log('Creating peer connection...')
       const pc = createPeerConnection()
+      
+      console.log('Creating offer...')
       const offer = await pc.createOffer({
         offerToReceiveAudio: true,
         offerToReceiveVideo: true
       })
+      
+      console.log('Setting local description...')
       await pc.setLocalDescription(offer)
       
       console.log('Offer created and set as local description')
+      console.log('Offer SDP length:', offer.sdp.length)
 
       if (stompClientRef.current && stompClientRef.current.connected) {
+        console.log('Sending offer via WebSocket...')
         stompClientRef.current.publish({
           destination: `/app/session/${sessionId}/offer`,
           body: JSON.stringify({
@@ -290,46 +368,55 @@ const VideoSession = () => {
             senderId: user.id
           })
         })
-        console.log('Offer sent via WebSocket')
+        console.log('✅ Offer sent successfully')
       } else {
-        console.error('Cannot send offer: WebSocket not connected')
+        console.error('❌ Cannot send offer: WebSocket not connected')
       }
     } catch (err) {
-      console.error('Error creating offer:', err)
+      console.error('❌ Error creating offer:', err)
     }
   }
 
   const handleOffer = async (data) => {
     try {
-      if (data.senderId === user.id) {
-        console.log('Ignoring own offer')
-        return // Ignore own offer
-      }
-
-      console.log('=== Received offer from:', data.senderId, '===')
-      console.log('My user ID:', user.id)
+      console.log('=== Handling offer from:', data.senderId, '===')
+      console.log('My user ID:', user.id, 'Type:', user.userType)
+      console.log('Offer SDP length:', data.sdp?.length)
       
       // Ensure we have local media before handling offer
-      if (!localStreamRef.current) {
+      if (!localStreamRef.current || localStreamRef.current.getTracks().length === 0) {
         console.error('No local stream available, reinitializing media...')
         await initializeMedia()
+        // Wait a bit after initializing
+        await new Promise(resolve => setTimeout(resolve, 500))
       }
+      
+      console.log('Local stream tracks:', localStreamRef.current.getTracks().length)
       
       // Close existing peer connection if any
       if (peerConnectionRef.current) {
         console.log('Closing existing peer connection before handling offer')
         peerConnectionRef.current.close()
+        peerConnectionRef.current = null
       }
       
+      console.log('Creating peer connection...')
       const pc = createPeerConnection()
-      await pc.setRemoteDescription(new RTCSessionDescription({ type: 'offer', sdp: data.sdp }))
-      console.log('Remote description set from offer')
       
+      console.log('Setting remote description from offer...')
+      await pc.setRemoteDescription(new RTCSessionDescription({ type: 'offer', sdp: data.sdp }))
+      console.log('✅ Remote description set from offer')
+      
+      console.log('Creating answer...')
       const answer = await pc.createAnswer()
+      
+      console.log('Setting local description...')
       await pc.setLocalDescription(answer)
-      console.log('Answer created and set as local description')
+      console.log('✅ Answer created and set as local description')
+      console.log('Answer SDP length:', answer.sdp.length)
 
       if (stompClientRef.current && stompClientRef.current.connected) {
+        console.log('Sending answer via WebSocket...')
         stompClientRef.current.publish({
           destination: `/app/session/${sessionId}/answer`,
           body: JSON.stringify({
@@ -337,27 +424,37 @@ const VideoSession = () => {
             senderId: user.id
           })
         })
-        console.log('Answer sent via WebSocket')
+        console.log('✅ Answer sent successfully')
       } else {
-        console.error('Cannot send answer: WebSocket not connected')
+        console.error('❌ Cannot send answer: WebSocket not connected')
       }
     } catch (err) {
-      console.error('Error handling offer:', err)
+      console.error('❌ Error handling offer:', err)
+      console.error('Error details:', err.message)
     }
   }
 
   const handleAnswer = async (data) => {
     try {
-      if (data.senderId === user.id) return // Ignore own answer
-
-      console.log('Received answer')
+      console.log('=== Handling answer from:', data.senderId, '===')
+      console.log('My user ID:', user.id)
+      console.log('Answer SDP length:', data.sdp?.length)
+      console.log('Peer connection exists:', !!peerConnectionRef.current)
+      console.log('Signaling state:', peerConnectionRef.current?.signalingState)
+      
       if (peerConnectionRef.current && peerConnectionRef.current.signalingState !== 'stable') {
+        console.log('Setting remote description from answer...')
         await peerConnectionRef.current.setRemoteDescription(
           new RTCSessionDescription({ type: 'answer', sdp: data.sdp })
         )
+        console.log('✅ Remote description set from answer')
+        console.log('New signaling state:', peerConnectionRef.current.signalingState)
+      } else {
+        console.warn('⚠️ Cannot set answer - peer connection not in correct state')
       }
     } catch (err) {
-      console.error('Error handling answer:', err)
+      console.error('❌ Error handling answer:', err)
+      console.error('Error details:', err.message)
     }
   }
 
@@ -395,6 +492,8 @@ const VideoSession = () => {
         localStreamRef.current.getTracks().forEach(track => track.stop())
       }
       
+      console.log('Requesting camera and microphone access...')
+      
       // Request fresh media stream
       const stream = await navigator.mediaDevices.getUserMedia({ 
         video: {
@@ -410,11 +509,53 @@ const VideoSession = () => {
       localStreamRef.current = stream
       if (localVideoRef.current) {
         localVideoRef.current.srcObject = stream
+        // Ensure video plays - critical for mobile and some browsers
+        localVideoRef.current.onloadedmetadata = () => {
+          localVideoRef.current.play().catch(err => {
+            console.warn('Local video autoplay prevented:', err)
+            // Try again with user interaction
+            document.addEventListener('click', () => {
+              localVideoRef.current.play().catch(e => console.error('Play failed:', e))
+            }, { once: true })
+          })
+        }
       }
-      console.log('Local media initialized with', stream.getTracks().length, 'tracks')
+      console.log('✅ Local media initialized with', stream.getTracks().length, 'tracks')
+      stream.getTracks().forEach(track => {
+        console.log('  - Track:', track.kind, 'enabled:', track.enabled, 'readyState:', track.readyState, 'label:', track.label)
+      })
+      
+      return true // Return success
     } catch (err) {
-      console.error('Failed to access media devices', err)
-      alert('Please allow camera and microphone access')
+      console.error('❌ Failed to access media devices:', err.name, err.message)
+      
+      // Show user-friendly error message
+      let errorMessage = '⚠️ Media Access Error\n\n'
+      
+      if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+        errorMessage += 'Camera/Microphone Not Found\n\n'
+        errorMessage += 'Your device does not have a camera or microphone, or they are not connected.\n\n'
+        errorMessage += 'To test video sessions:\n'
+        errorMessage += '1. Connect a webcam and microphone\n'
+        errorMessage += '2. Or use a device with built-in camera (laptop, phone)\n'
+        errorMessage += '3. Refresh the page after connecting devices'
+      } else if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        errorMessage += 'Permission Denied\n\n'
+        errorMessage += 'Please allow camera and microphone access:\n'
+        errorMessage += '1. Click the camera icon in your browser address bar\n'
+        errorMessage += '2. Select "Allow" for camera and microphone\n'
+        errorMessage += '3. Refresh the page'
+      } else {
+        errorMessage += err.message + '\n\n'
+        errorMessage += 'Please check:\n'
+        errorMessage += '1. Camera/microphone are connected\n'
+        errorMessage += '2. No other app is using them\n'
+        errorMessage += '3. Browser has permission to access them'
+      }
+      
+      alert(errorMessage)
+      
+      return false // Return failure
     }
   }
 
@@ -461,7 +602,7 @@ const VideoSession = () => {
       }
       
       // Clean up connections before ending
-      cleanupConnections()
+      cleanupConnections(sessionId)
       
       await sessionService.endSession(sessionId)
       
@@ -501,8 +642,9 @@ const VideoSession = () => {
                     <video
                       ref={localVideoRef}
                       autoPlay
+                      playsInline
                       muted
-                      style={{ width: '100%', background: '#000', borderRadius: '4px' }}
+                      style={{ width: '100%', maxHeight: '400px', background: '#000', borderRadius: '4px' }}
                     />
                   </div>
                   <div>
@@ -510,7 +652,8 @@ const VideoSession = () => {
                     <video
                       ref={remoteVideoRef}
                       autoPlay
-                      style={{ width: '100%', background: '#000', borderRadius: '4px' }}
+                      playsInline
+                      style={{ width: '100%', maxHeight: '400px', background: '#000', borderRadius: '4px' }}
                     />
                   </div>
                 </div>

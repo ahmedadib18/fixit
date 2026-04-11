@@ -57,6 +57,17 @@ public class ReviewController {
         }
     }
 
+    @GetMapping("/sessions/{sessionId}")
+    public ResponseEntity<?> getReviewBySession(@PathVariable String sessionId) {
+        try {
+            Review review = reviewService.getReviewBySession(sessionId);
+            return ResponseEntity.ok(review);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ErrorResponse(e.getMessage(), HttpStatus.NOT_FOUND.value()));
+        }
+    }
+
     // Inner classes for responses
     private static class RatingResponse {
         private Double averageRating;

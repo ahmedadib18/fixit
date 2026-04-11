@@ -1,5 +1,6 @@
 package com.fixit.fixit.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -13,14 +14,17 @@ public class Review {
 
     @ManyToOne
     @JoinColumn(name = "session_id", nullable = false)
+    @JsonIgnoreProperties({"user", "helper", "category"})
     private Session session;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnoreProperties({"password", "passwordHash", "sessions", "helper", "reviews"})
     private User user;
 
     @ManyToOne
     @JoinColumn(name = "helper_id", nullable = false)
+    @JsonIgnoreProperties({"user", "categories", "sessions", "reviews"})
     private Helper helper;
 
     @Column(name = "rating", nullable = false)

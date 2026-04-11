@@ -1,19 +1,15 @@
 package com.fixit.fixit.service;
 
-import com.fixit.fixit.entity.Helper;
 import com.fixit.fixit.entity.Receipt;
 import com.fixit.fixit.entity.Session;
 import com.fixit.fixit.entity.Transaction;
-import com.fixit.fixit.entity.User;
 import com.fixit.fixit.entity.PaymentMethod;
 import com.fixit.fixit.enums.TransactionStatus;
 import com.fixit.fixit.exception.PaymentProcessingException;
 import com.fixit.fixit.exception.ResourceNotFoundException;
-import com.fixit.fixit.repository.HelperRepository;
 import com.fixit.fixit.repository.PaymentMethodRepository;
 import com.fixit.fixit.repository.ReceiptRepository;
 import com.fixit.fixit.repository.TransactionRepository;
-import com.fixit.fixit.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,12 +33,6 @@ public class BillingService {
 
     @Autowired
     private PaymentMethodRepository paymentMethodRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private HelperRepository helperRepository;
 
     @Autowired
     private SessionService sessionService;

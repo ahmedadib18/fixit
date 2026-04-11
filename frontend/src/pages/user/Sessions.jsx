@@ -1,22 +1,78 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { userService } from '../../services/userService'
+import { billingService } from '../../services/billingService'
 import Navbar from '../../components/Navbar'
+import SockJS from 'sockjs-client'
+import { Client } from '@stomp/stompjs'
 
 const UserSessions = () => {
   const { user } = useAuth()
   const [sessions, setSessions] = useState([])
+  const [transactions, setTransactions] = useState({})
   const [loading, setLoading] = useState(true)
+  const stompClientRef = useRef(null)
 
   useEffect(() => {
-    loadSessions()
+    loadData()
+    connectWebSocket()
+    
+    return () => {
+      if (stompClientRef.current) {
+        stompClientRef.current.deactivate()
+      }
+    }
   }, [])
 
-  const loadSessions = async () => {
+  const connectWebSocket = () => {
+    const socket = new SockJS('http://localhost:8080/ws')
+    const client = new Client({
+      webSocketFactory: () => socket,
+      reconnectDelay: 5000,
+      onConnect: () => {
+        console.log('User Sessions WebSocket connected')
+        
+        // Subscribe to user-specific session updates
+        client.subscribe(`/topic/user/${user.id}/session-updates`, (message) => {
+          const data = JSON.parse(message.body)
+          console.log('Received session update:', data)
+          
+          if (data.type === 'SESSION_STATUS_UPDATE') {
+            // Update the specific session in the list
+            setSessions(prevSessions => 
+              prevSessions.map(session => 
+                session.id === data.sessionId 
+                  ? { ...session, status: data.status }
+                  : session
+              )
+            )
+          }
+        })
+      },
+      onStompError: (frame) => {
+        console.error('STOMP error:', frame)
+      }
+    })
+    
+    client.activate()
+    stompClientRef.current = client
+  }
+
+  const loadData = async () => {
     try {
-      const data = await userService.getSessions(user.id)
-      setSessions(data)
+      const sessionsData = await userService.getSessions(user.id)
+      setSessions(sessionsData)
+      
+      // Load transactions for user
+      const transactionsData = await billingService.getUserTransactions(user.id)
+      
+      // Create a map of sessionId -> transaction
+      const transactionMap = {}
+      transactionsData.forEach(t => {
+        transactionMap[t.sessionId] = t
+      })
+      setTransactions(transactionMap)
     } catch (err) {
       console.error('Failed to load sessions', err)
     } finally {
@@ -56,32 +112,60 @@ const UserSessions = () => {
                   <th style={{ padding: '10px', textAlign: 'left' }}>Session ID</th>
                   <th style={{ padding: '10px', textAlign: 'left' }}>Status</th>
                   <th style={{ padding: '10px', textAlign: 'left' }}>Started</th>
-                  <th style={{ padding: '10px', textAlign: 'left' }}>Ended</th>
                   <th style={{ padding: '10px', textAlign: 'left' }}>Duration</th>
+                  <th style={{ padding: '10px', textAlign: 'left' }}>Amount</th>
                   <th style={{ padding: '10px', textAlign: 'left' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {sessions.map(session => (
-                  <tr key={session.id} style={{ borderBottom: '1px solid #eee' }}>
-                    <td style={{ padding: '10px' }}>{session.id}</td>
-                    <td style={{ padding: '10px' }}>{session.status}</td>
-                    <td style={{ padding: '10px' }}>
-                      {session.startedAt ? new Date(session.startedAt).toLocaleString() : 'Not started'}
-                    </td>
-                    <td style={{ padding: '10px' }}>
-                      {session.endedAt ? new Date(session.endedAt).toLocaleString() : '-'}
-                    </td>
-                    <td style={{ padding: '10px' }}>
-                      {formatDuration(session.startedAt, session.endedAt)}
-                    </td>
-                    <td style={{ padding: '10px' }}>
-                      <Link to={`/session/${session.id}`} className="btn btn-primary" style={{ padding: '5px 10px' }}>
-                        View
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
+                {sessions.map(session => {
+                  const transaction = transactions[session.id]
+                  return (
+                    <tr key={session.id} style={{ borderBottom: '1px solid #eee' }}>
+                      <td style={{ padding: '10px' }}>{session.id}</td>
+                      <td style={{ padding: '10px' }}>
+                        <span style={{
+                          padding: '4px 8px',
+                          borderRadius: '4px',
+                          backgroundColor: session.status === 'ENDED' ? '#28a745' : '#ffc107',
+                          color: 'white',
+                          fontSize: '12px'
+                        }}>
+                          {session.status}
+                        </span>
+                      </td>
+                      <td style={{ padding: '10px' }}>
+                        {session.startedAt ? new Date(session.startedAt).toLocaleString() : 'Not started'}
+                      </td>
+                      <td style={{ padding: '10px' }}>
+                        {formatDuration(session.startedAt, session.endedAt)}
+                      </td>
+                      <td style={{ padding: '10px' }}>
+                        {transaction ? (
+                          <span>
+                            ${parseFloat(transaction.amount).toFixed(2)}
+                            <br />
+                            <small style={{ color: '#666' }}>({transaction.status})</small>
+                          </span>
+                        ) : (
+                          <span style={{ color: '#999' }}>-</span>
+                        )}
+                      </td>
+                      <td style={{ padding: '10px' }}>
+                        <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
+                          <Link to={`/session/${session.id}`} className="btn btn-primary" style={{ padding: '5px 10px' }}>
+                            View
+                          </Link>
+                          {session.status === 'ENDED' && (
+                            <Link to={`/user/review/${session.id}`} className="btn btn-secondary" style={{ padding: '5px 10px' }}>
+                              Review
+                            </Link>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           )}

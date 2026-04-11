@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { helperService } from '../../services/helperService'
 import { sessionService } from '../../services/sessionService'
 import Navbar from '../../components/Navbar'
+import SockJS from 'sockjs-client'
+import { Client } from '@stomp/stompjs'
 
 const HelperDashboard = () => {
   const { user } = useAuth()
@@ -11,14 +13,99 @@ const HelperDashboard = () => {
   const [helper, setHelper] = useState(null)
   const [sessions, setSessions] = useState([])
   const [loading, setLoading] = useState(true)
+  const stompClientRef = useRef(null)
 
   useEffect(() => {
     loadHelper()
     loadSessions()
-    // Poll for new sessions every 5 seconds
-    const interval = setInterval(loadSessions, 5000)
-    return () => clearInterval(interval)
+    connectWebSocket()
+    
+    return () => {
+      if (stompClientRef.current) {
+        stompClientRef.current.deactivate()
+      }
+    }
   }, [])
+
+  const connectWebSocket = () => {
+    const socket = new SockJS('http://localhost:8080/ws')
+    const client = new Client({
+      webSocketFactory: () => socket,
+      reconnectDelay: 5000,
+      onConnect: () => {
+        console.log('Helper Dashboard WebSocket connected for user:', user.id)
+        
+        // Get helper ID first, then subscribe
+        helperService.getHelperByUserId(user.id).then(helperData => {
+          if (helperData && helperData.id) {
+            const helperId = helperData.id
+            console.log('Subscribing to notifications for helper ID:', helperId)
+            
+            // Subscribe to helper-specific notifications using helper ID
+            client.subscribe(`/topic/helper/${helperId}/notifications`, (message) => {
+              const data = JSON.parse(message.body)
+              console.log('✅ Received notification:', data)
+              
+              if (data.type === 'NEW_SESSION_REQUEST') {
+                console.log('🔔 New session request received, reloading sessions...')
+                
+                // Play notification sound
+                playNotificationSound()
+                
+                // Show browser notification if permitted
+                showBrowserNotification('New Session Request', 
+                  `${data.userName} is requesting a session for ${data.categoryName}`)
+                
+                // Force reload sessions to show the new request
+                setTimeout(() => {
+                  loadSessions()
+                }, 500) // Small delay to ensure backend has saved the session
+              }
+            })
+          }
+        }).catch(err => {
+          console.error('Failed to get helper ID for WebSocket subscription:', err)
+        })
+      },
+      onStompError: (frame) => {
+        console.error('STOMP error:', frame)
+      }
+    })
+    
+    client.activate()
+    stompClientRef.current = client
+  }
+
+  const playNotificationSound = () => {
+    // Create a simple beep sound
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)()
+    const oscillator = audioContext.createOscillator()
+    const gainNode = audioContext.createGain()
+    
+    oscillator.connect(gainNode)
+    gainNode.connect(audioContext.destination)
+    
+    oscillator.frequency.value = 800
+    oscillator.type = 'sine'
+    
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime)
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5)
+    
+    oscillator.start(audioContext.currentTime)
+    oscillator.stop(audioContext.currentTime + 0.5)
+  }
+
+  const showBrowserNotification = (title, body) => {
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification(title, { body, icon: '/favicon.ico' })
+    } else if ('Notification' in window && Notification.permission !== 'denied') {
+      Notification.requestPermission().then(permission => {
+        if (permission === 'granted') {
+          new Notification(title, { body, icon: '/favicon.ico' })
+        }
+      })
+    }
+  }
 
   const loadHelper = async () => {
     try {
@@ -34,18 +121,13 @@ const HelperDashboard = () => {
   const loadSessions = async () => {
     try {
       const data = await helperService.getHelperByUserId(user.id)
-      console.log('Helper data:', data)
       if (data?.id) {
-        console.log('Fetching sessions for helper ID:', data.id)
         const sessionsData = await helperService.getHelperSessions(data.id)
-        console.log('Sessions data:', sessionsData)
-        console.log('Sessions array length:', sessionsData?.length)
-        console.log('Sessions array:', JSON.stringify(sessionsData, null, 2))
+        console.log('Loaded sessions:', sessionsData?.length || 0)
         setSessions(sessionsData || [])
       }
     } catch (err) {
       console.error('Failed to load sessions', err)
-      console.error('Error response:', err.response?.data)
     }
   }
 

@@ -127,7 +127,9 @@ public class DisputeService {
             throw new InvalidOperationException("Cannot dismiss an already resolved dispute");
         }
 
-        dispute.setStatus(DisputeStatus.DISMISSED);
+        // Use RESOLVED status with empty resolution to indicate dismissal
+        dispute.setResolution("Dispute dismissed by administrator");
+        dispute.setStatus(DisputeStatus.RESOLVED);
         dispute.setResolvedAt(LocalDateTime.now());
         return disputeRepository.save(dispute);
     }

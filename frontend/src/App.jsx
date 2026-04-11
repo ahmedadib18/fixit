@@ -14,6 +14,7 @@ import HelperDetails from './pages/user/HelperDetails'
 import UserSessions from './pages/user/Sessions'
 import PaymentMethods from './pages/user/PaymentMethods'
 import SubmitTicket from './pages/user/SubmitTicket'
+import SubmitReview from './pages/user/SubmitReview'
 
 // Helper Pages
 import HelperDashboard from './pages/helper/Dashboard'
@@ -47,6 +48,7 @@ function App() {
           <Route path="/user/sessions" element={<PrivateRoute role="USER"><UserSessions /></PrivateRoute>} />
           <Route path="/user/payment-methods" element={<PrivateRoute role="USER"><PaymentMethods /></PrivateRoute>} />
           <Route path="/user/support" element={<PrivateRoute role="USER"><SubmitTicket /></PrivateRoute>} />
+          <Route path="/user/review/:sessionId" element={<PrivateRoute role="USER"><SubmitReview /></PrivateRoute>} />
 
           {/* Helper Routes */}
           <Route path="/helper/dashboard" element={<PrivateRoute role="HELPER"><HelperDashboard /></PrivateRoute>} />

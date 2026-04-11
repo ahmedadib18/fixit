@@ -17,8 +17,9 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 
     // Get all transactions for a user (matches class diagram)
     @Query("SELECT t FROM Transaction t " +
-            "JOIN t.paymentMethod pm " +
-            "WHERE pm.user.id = :userId")
+            "JOIN t.session s " +
+            "WHERE s.user.id = :userId " +
+            "ORDER BY t.processedAt DESC")
     List<Transaction> findByUserId(@Param("userId") Long userId);
 
     // Get all transactions for a user via payment method

@@ -124,19 +124,15 @@ const HelperProfile = () => {
   }
 
   const handleRemoveSpecialization = async (helperCategoryId) => {
-    console.log('Attempting to remove specialization with ID:', helperCategoryId)
     if (!window.confirm('Are you sure you want to remove this specialization?')) return
     
     setMessage('')
     try {
-      console.log('Calling deleteSpecialization API...')
       await helperService.deleteSpecialization(helperCategoryId)
       setMessage('Specialization removed successfully')
-      console.log('Specialization removed, reloading helper data...')
       await loadHelper()
     } catch (err) {
       console.error('Remove specialization error:', err)
-      console.error('Error response:', err.response?.data)
       setMessage(err.response?.data?.message || 'Failed to remove specialization')
     }
   }
