@@ -28,7 +28,15 @@ export const AuthProvider = ({ children }) => {
   }, [])
 
   const login = async (credentials) => {
+    console.log('🔐 Login attempt:', { email: credentials.email })
+    
+    // Clear any existing auth data before login
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+    
     const data = await authService.login(credentials)
+    console.log('✅ Login successful:', { userType: data.userType })
+    
     setToken(data.token)
     setUser({
       id: data.userId,
@@ -73,36 +81,39 @@ export const AuthProvider = ({ children }) => {
     // Clean up WebRTC and media resources
     cleanupMediaResources()
     
+    // Clear state
     setToken(null)
     setUser(null)
+    
+    // Clear localStorage completely
     localStorage.removeItem('token')
     localStorage.removeItem('user')
+    
+    // Clear any other cached data
+    sessionStorage.clear()
+    
+    console.log('Logout complete - all data cleared')
   }
 
   const cleanupMediaResources = () => {
-    // Stop all media streams (camera/microphone)
-    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-      .then(stream => {
-        stream.getTracks().forEach(track => {
-          track.stop()
-          console.log('Stopped media track:', track.kind)
-        })
-      })
-      .catch(() => {
-        // Ignore errors if no stream exists
+    try {
+      // Get all video elements and clear their sources
+      const videoElements = document.querySelectorAll('video')
+      videoElements.forEach(video => {
+        if (video.srcObject) {
+          const stream = video.srcObject
+          stream.getTracks().forEach(track => {
+            track.stop()
+            console.log('Stopped media track:', track.kind)
+          })
+          video.srcObject = null
+        }
       })
 
-    // Get all video elements and clear their sources
-    const videoElements = document.querySelectorAll('video')
-    videoElements.forEach(video => {
-      if (video.srcObject) {
-        const stream = video.srcObject
-        stream.getTracks().forEach(track => track.stop())
-        video.srcObject = null
-      }
-    })
-
-    console.log('Media resources cleaned up on logout')
+      console.log('Media resources cleaned up on logout')
+    } catch (error) {
+      console.log('Error cleaning up media resources:', error)
+    }
   }
 
   const value = {
