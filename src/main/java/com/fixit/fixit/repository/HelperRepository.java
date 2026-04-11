@@ -23,10 +23,10 @@ public interface HelperRepository extends JpaRepository<Helper, Long> {
             "LEFT JOIN h.categories hc " +
             "LEFT JOIN hc.category c " +
             "JOIN h.user u " +
-            "WHERE (:categoryId IS NULL OR (c.id IS NOT NULL AND c.id = :categoryId)) " +
-            "AND (:language IS NULL OR LOWER(h.languagesSpoken) LIKE LOWER(CONCAT('%', :language, '%'))) " +
+            "WHERE (:categoryId IS NULL OR c.id = :categoryId) " +
+            "AND (:language IS NULL OR :language = '' OR LOWER(h.languagesSpoken) LIKE LOWER(CONCAT('%', :language, '%'))) " +
             "AND (:maxPrice IS NULL OR hc.hourlyRate IS NULL OR hc.hourlyRate <= :maxPrice) " +
-            "AND (:availableNow IS NULL OR :availableNow = FALSE OR h.isAvailable = TRUE) " +
+            "AND (:availableNow IS NULL OR :availableNow = false OR h.isAvailable = true) " +
             "AND (:cityId IS NULL OR u.city.id = :cityId)")
     List<Helper> searchHelpers(
             @Param("categoryId") Long categoryId,

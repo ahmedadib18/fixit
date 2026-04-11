@@ -76,6 +76,29 @@ public class SearchController {
         }
     }
 
+    @GetMapping("/debug/all-helpers")
+    public ResponseEntity<?> getAllHelpersDebug() {
+        try {
+            List<Helper> allHelpers = searchService.searchHelpers(null, null, null, null, null, null);
+            System.out.println("=== DEBUG: ALL HELPERS ===");
+            allHelpers.forEach(h -> {
+                System.out.println("Helper ID: " + h.getId() + 
+                    ", User: " + (h.getUser() != null ? h.getUser().getEmail() : "null") +
+                    ", Available: " + h.getIsAvailable() +
+                    ", Categories: " + (h.getCategories() != null ? h.getCategories().size() : 0));
+            });
+            
+            List<HelperSearchResponse> response = allHelpers.stream()
+                    .map(HelperSearchResponse::new)
+                    .collect(Collectors.toList());
+            
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage(), HttpStatus.BAD_REQUEST.value()));
+        }
+    }
+
     // Inner classes for responses
     private static class ErrorResponse {
         private String message;

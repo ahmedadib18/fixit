@@ -26,6 +26,8 @@ const SearchHelpers = () => {
       setHelpers(data)
     } catch (err) {
       console.error('Failed to search helpers', err)
+      console.error('Error response:', err.response?.data)
+      console.error('Error status:', err.response?.status)
     } finally {
       setLoading(false)
     }
