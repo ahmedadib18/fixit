@@ -30,6 +30,14 @@ public class SearchController {
             @RequestParam(required = false) Boolean availableNow,
             @RequestParam(required = false) Long cityId) {
         try {
+            System.out.println("=== SEARCH HELPERS REQUEST ===");
+            System.out.println("categoryId: " + categoryId);
+            System.out.println("minRating: " + minRating);
+            System.out.println("maxPrice: " + maxPrice);
+            System.out.println("language: " + language);
+            System.out.println("availableNow: " + availableNow);
+            System.out.println("cityId: " + cityId);
+            
             List<Helper> helpers = searchService.searchHelpers(
                     categoryId,
                     minRating,
@@ -39,6 +47,9 @@ public class SearchController {
                     cityId
             );
             
+            System.out.println("Found " + helpers.size() + " helpers");
+            helpers.forEach(h -> System.out.println("  Helper ID: " + h.getId() + ", Available: " + h.getIsAvailable()));
+            
             // Convert to DTOs
             List<HelperSearchResponse> response = helpers.stream()
                     .map(HelperSearchResponse::new)
@@ -46,6 +57,7 @@ public class SearchController {
             
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
+            e.printStackTrace();
             return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage(), HttpStatus.BAD_REQUEST.value()));
         }
     }

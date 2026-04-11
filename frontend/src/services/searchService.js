@@ -14,7 +14,10 @@ export const searchService = {
         params.append(key, value)
       }
     })
+    console.log('Search filters:', filters)
+    console.log('Search params:', params.toString())
     const response = await api.get(`/search/helpers?${params.toString()}`)
+    console.log('Search response:', response.data)
     return response.data
   },
 

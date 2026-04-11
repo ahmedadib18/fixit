@@ -30,6 +30,9 @@ public class SearchService {
                                       Boolean availableNow,
                                       Long cityId) {
 
+        System.out.println("=== SearchService.searchHelpers ===");
+        System.out.println("Calling repository with availableNow: " + availableNow);
+        
         // Get helpers based on filters
         List<Helper> helpers = helperRepository.searchHelpers(
                 categoryId,
@@ -38,8 +41,11 @@ public class SearchService {
                 availableNow,
                 cityId);
 
+        System.out.println("Repository returned " + helpers.size() + " helpers");
+        
         // Force initialization of collections
         helpers.forEach(helper -> {
+            System.out.println("Helper ID: " + helper.getId() + ", isAvailable: " + helper.getIsAvailable() + ", categories: " + (helper.getCategories() != null ? helper.getCategories().size() : 0));
             if (helper.getCategories() != null) {
                 helper.getCategories().size();
             }
